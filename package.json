@@ -14,6 +14,7 @@
   },
   "files": [
     "dist/pay-with-toonie.dist.js",
+    "dist/pay-with-toonie.dist.js.map",
     "dist/pay-with-toonie.dist.css"
   ],
   "devDependencies": {
