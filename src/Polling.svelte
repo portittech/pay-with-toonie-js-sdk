@@ -3,12 +3,12 @@
   import { optionsStore } from "./store";
 
   const POLL_INTERVAL = 5000;
-  const API_ENDPOINT =
-    "https://api.develop.toonie.portit.io/offers/v1/payments/status/";
 
   const poll = async ({ interval, maxAttempts, sessionId }) => {
     const options = get(optionsStore);
     let attempts = 0;
+
+    const API_ENDPOINT = `${options.baseUrl}/offers/v1/payments/status/`;
 
     const paymentIntentRequest = async () => {
       try {

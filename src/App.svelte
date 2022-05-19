@@ -2,16 +2,21 @@
   import PaymentModal from "./PaymentModal.svelte";
   import { get } from "svelte/store";
   import { optionsStore } from "./store";
+  import { checkInvalidOptions } from "./utils.svelte";
 
   let modalVisible;
   let paymentShortReference;
-  let loadDataError;
+  let loadDataError = false;
   let sessionId;
   let qrCodeValue;
 
   const onButtonClick = async () => {
     const options = get(optionsStore);
+
     try {
+      //validating options object provided in the render method
+      loadDataError = checkInvalidOptions(options);
+
       const data = await options.getPaymentData();
       if (data.paymentSessionId) {
         paymentShortReference = data.paymentShortReference;
@@ -22,13 +27,13 @@
           $: "PWT",
         });
       } else {
-        loadDataError = new Error(
-          "Error on Load Data: paymentSessionId is missing"
-        );
+        loadDataError = true;
+        console.warn("Error on Load Data: paymentSessionId is missing");
       }
       modalVisible = true;
     } catch (err) {
-      loadDataError = err.message;
+      loadDataError = true;
+      console.warn("There was an issue with loading data for this payment");
     }
   };
 
