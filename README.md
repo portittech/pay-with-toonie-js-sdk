@@ -73,10 +73,14 @@ const failurePaymentCallback = err => {
 const successPaymentCallback = data => {
   console.log("Success!!", data);
 };
+
+const baseUrl = "https://example_url";
+
 const options = {
   getPaymentData,
   successPaymentCallback,
   failurePaymentCallback,
+  baseUrl,
 };
 // builds the UI for the form
 PayWithToonie.render(
