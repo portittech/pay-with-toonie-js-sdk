@@ -8,7 +8,9 @@
     const options = get(optionsStore);
     let attempts = 0;
 
-    const API_ENDPOINT = `${options.baseUrl}/offers/v1/payments/status/`;
+    const BASE_URL = options.baseUrl ?? "https://api.toonieglobal.com";
+
+    const API_ENDPOINT = `${BASE_URL}/offers/v1/payments/status/`;
 
     const paymentIntentRequest = async () => {
       try {
