@@ -8,14 +8,8 @@
       return true;
     }
 
-    // options.baseUrl is required
-    if (!options.baseUrl) {
-      console.warn("baseUrl is required");
-      return true;
-    }
-
     // options.baseUrl should be a string
-    if (typeof options.baseUrl !== "string") {
+    if (options.baseUrl && typeof options.baseUrl !== "string") {
       console.warn("baseUrl must be a string");
       return true;
     }
