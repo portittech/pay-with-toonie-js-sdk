@@ -4,7 +4,7 @@
 
   const POLL_INTERVAL = 5000
 
-  const poll = async ({ interval, maxAttempts, sessionId }) => {
+  const poll = async ({ interval, maxAttempts, paymentData }) => {
     const options = get(optionsStore)
     let attempts = 0
 
@@ -14,7 +14,7 @@
 
     const paymentIntentRequest = async () => {
       try {
-        const res = await fetch(API_ENDPOINT + sessionId)
+        const res = await fetch(API_ENDPOINT + paymentData.paymentSessionId)
         if (res.ok) {
           const data = await res.json()
           return data
@@ -35,7 +35,6 @@
       if (paymentStatus.status === 'APPROVED') {
         // Show to user success message
         if (options.successPaymentCallback) {
-          const paymentData = await options.getPaymentData()
           options.successPaymentCallback(paymentStatus, paymentData)
         }
         return resolve(paymentStatus)
@@ -54,9 +53,9 @@
     return new Promise(executePoll)
   }
 
-  export const pollForNewPayment = (sessionId) =>
+  export const pollForNewPayment = (paymentData) =>
     poll({
       interval: POLL_INTERVAL,
-      sessionId,
+      paymentData,
     })
 </script>

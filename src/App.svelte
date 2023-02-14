@@ -7,8 +7,8 @@
   let modalVisible
   let paymentShortReference
   let loadDataError = false
-  let sessionId
   let qrCodeValue
+  let paymentData
 
   const onButtonClick = async () => {
     const options = get(optionsStore)
@@ -17,10 +17,9 @@
       //validating options object provided in the render method
       loadDataError = checkInvalidOptions(options)
 
-      const data = await options.getPaymentData()
+      paymentData = await options.getPaymentData()
       if (data.paymentSessionId) {
         paymentShortReference = data.paymentShortReference
-        sessionId = data.paymentSessionId
         qrCodeValue = JSON.stringify({
           paymentSessionId: data.paymentSessionId,
           otp: data.otp,
@@ -83,7 +82,7 @@
     {paymentShortReference}
     {qrCodeValue}
     {loadDataError}
-    {sessionId}
+    {paymentData}
     {closeModal}
   />
 </div>
