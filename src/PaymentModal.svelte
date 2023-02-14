@@ -1,14 +1,14 @@
 <script>
-  import QRCode from "./QRJS.svelte";
-  import { pollForNewPayment } from "./Polling.svelte";
+  import QRCode from './QRJS.svelte'
+  import { pollForNewPayment } from './Polling.svelte'
 
-  export let modalVisible = false;
+  export let modalVisible = false
 
-  export let paymentShortReference;
-  export let loadDataError;
-  export let sessionId;
-  export let qrCodeValue;
-  export let closeModal;
+  export let paymentShortReference
+  export let loadDataError
+  export let sessionId
+  export let qrCodeValue
+  export let closeModal
 </script>
 
 <div>
@@ -193,7 +193,7 @@
       box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
       background-clip: padding-box;
       padding: 3rem 2rem 1rem;
-      font-family: "Comfortaa", cursive;
+      font-family: 'Comfortaa', cursive;
       position: relative;
       min-width: 200px;
     }
