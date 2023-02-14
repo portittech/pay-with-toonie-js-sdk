@@ -18,11 +18,11 @@
       loadDataError = checkInvalidOptions(options)
 
       paymentData = await options.getPaymentData()
-      if (data.paymentSessionId) {
-        paymentShortReference = data.paymentShortReference
+      if (paymentData.paymentSessionId) {
+        paymentShortReference = paymentData.paymentShortReference
         qrCodeValue = JSON.stringify({
-          paymentSessionId: data.paymentSessionId,
-          otp: data.otp,
+          paymentSessionId: paymentData.paymentSessionId,
+          otp: paymentData.otp,
           $: 'PWT',
         })
       } else {
@@ -30,7 +30,8 @@
         console.warn('Error on Load Data: paymentSessionId is missing')
       }
       modalVisible = true
-    } catch (err) {
+    } catch (error) {
+      options.genericErrorCallback && options.genericErrorCallback(error)
       loadDataError = true
       console.warn('There was an issue with loading data for this payment')
     }
