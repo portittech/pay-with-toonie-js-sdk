@@ -1,45 +1,45 @@
 <script>
-  import PaymentModal from "./PaymentModal.svelte";
-  import { get } from "svelte/store";
-  import { optionsStore } from "./store";
-  import { checkInvalidOptions } from "./utils.svelte";
+  import PaymentModal from './PaymentModal.svelte'
+  import { get } from 'svelte/store'
+  import { optionsStore } from './store'
+  import { checkInvalidOptions } from './utils.svelte'
 
-  let modalVisible;
-  let paymentShortReference;
-  let loadDataError = false;
-  let sessionId;
-  let qrCodeValue;
+  let modalVisible
+  let paymentShortReference
+  let loadDataError = false
+  let sessionId
+  let qrCodeValue
 
   const onButtonClick = async () => {
-    const options = get(optionsStore);
+    const options = get(optionsStore)
 
     try {
       //validating options object provided in the render method
-      loadDataError = checkInvalidOptions(options);
+      loadDataError = checkInvalidOptions(options)
 
-      const data = await options.getPaymentData();
+      const data = await options.getPaymentData()
       if (data.paymentSessionId) {
-        paymentShortReference = data.paymentShortReference;
-        sessionId = data.paymentSessionId;
+        paymentShortReference = data.paymentShortReference
+        sessionId = data.paymentSessionId
         qrCodeValue = JSON.stringify({
           paymentSessionId: data.paymentSessionId,
           otp: data.otp,
-          $: "PWT",
-        });
+          $: 'PWT',
+        })
       } else {
-        loadDataError = true;
-        console.warn("Error on Load Data: paymentSessionId is missing");
+        loadDataError = true
+        console.warn('Error on Load Data: paymentSessionId is missing')
       }
-      modalVisible = true;
+      modalVisible = true
     } catch (err) {
-      loadDataError = true;
-      console.warn("There was an issue with loading data for this payment");
+      loadDataError = true
+      console.warn('There was an issue with loading data for this payment')
     }
-  };
+  }
 
   const closeModal = () => {
-    modalVisible = false;
-  };
+    modalVisible = false
+  }
 </script>
 
 <div>
@@ -89,7 +89,7 @@
 </div>
 
 <style lang="scss">
-  @import url("https://fonts.googleapis.com/css2?family=Comfortaa&display=swap");
+  @import url('https://fonts.googleapis.com/css2?family=Comfortaa&display=swap');
 
   :root {
     --toonie-primary-color: #133d59;
@@ -107,7 +107,7 @@
     align-items: center;
     justify-content: center;
     border-radius: 30px;
-    font-family: "Comfortaa", cursive;
+    font-family: 'Comfortaa', cursive;
     transition: 0.3s;
 
     &:hover {
