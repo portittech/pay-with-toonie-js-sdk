@@ -35,7 +35,8 @@
       if (paymentStatus.status === 'APPROVED') {
         // Show to user success message
         if (options.successPaymentCallback) {
-          options.successPaymentCallback(paymentStatus, options)
+          const paymentData = await options.getPaymentData()
+          options.successPaymentCallback(paymentStatus, paymentData)
         }
         return resolve(paymentStatus)
       } else if (paymentStatus.status === 'REJECTED') {
