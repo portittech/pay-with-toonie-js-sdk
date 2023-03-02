@@ -1,6 +1,6 @@
 <script context="module">
   import { get } from 'svelte/store'
-  import { optionsStore } from './store'
+  import {optionsStore, pollingStore, forcePollingStop} from './store'
 
   const POLL_INTERVAL = 5000
 
@@ -46,7 +46,12 @@
         return reject(new Error('Exceeded max attempts'))
       } else {
         // continue polling
-        setTimeout(executePoll, interval, resolve, reject)
+        const isForcedFromOutside = get(forcePollingStop);
+        if (!isForcedFromOutside) {
+            const timeoutId = setTimeout(executePoll, interval, resolve, reject);
+            pollingStore.set(timeoutId)
+        }
+
       }
     }
 
