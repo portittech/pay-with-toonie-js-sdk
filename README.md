@@ -1,6 +1,6 @@
 # Pay with Toonie SDK
 
-### Documentation
+## Documentation
 
 Further official integration documentation can be found [here](https://github.com/portittech/pay-with-toonie-doc).
 
@@ -92,6 +92,9 @@ PayWithToonie.render(
   document.querySelector("#print-here-toonie-payment-form"),
   options
 );
+PayWithToonie.getStopPollingHandle((stopPollingHandle) => {
+    // stopPollingHandle is a function you can call whenever you want to force the polling
+})
 ```
 
 ### JS SDK Integration
