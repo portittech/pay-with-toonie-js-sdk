@@ -78,6 +78,11 @@ const genericErrorCallback = error => {
   console.error("Error!!", error);
 };
 
+const onModalCloseCallback = possiblePaymentStatusInError => {
+  if(possiblePaymentStatusInError)
+    console.error(possiblePaymentStatusInError);
+};
+
 const baseUrl = "https://example_url";
 
 const options = {
@@ -85,6 +90,7 @@ const options = {
   successPaymentCallback,
   failurePaymentCallback, 
   genericErrorCallback,
+  onModalCloseCallback,
   baseUrl,
 };
 // builds the UI for the form

@@ -44,12 +44,21 @@
       return true;
     }
 
-    // options.successPaymentCallback is provided it should be a function
+    // if options.genericErrorCallback is provided it should be a function
     if (
       options.genericErrorCallback &&
       typeof options.genericErrorCallback !== "function"
     ) {
       console.warn("genericErrorCallback must be a function");
+      return true;
+    }
+
+    // if options.genericErrorCallback is provided it should be a function
+    if (
+      options.onModalClose &&
+      typeof options.onModalClose !== "function"
+    ) {
+      console.warn("onModalClose must be a function");
       return true;
     }
 

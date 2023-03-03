@@ -41,7 +41,7 @@
               There was an issue with loading data for this payment
             </div>
             <button on:click={closeModal} class="pwt-modal__btn"
-              >Try again</button
+              >Close</button
             >
           </div>
         {/if}
@@ -119,7 +119,7 @@
               </div>
               <div class="pwt-modal__message">{error.message}</div>
               <button on:click={closeModal} class="pwt-modal__btn">
-                Try again
+                close
               </button>
             </div>
           {/await}

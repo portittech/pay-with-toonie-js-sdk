@@ -1,7 +1,7 @@
 <script>
   import PaymentModal from './PaymentModal.svelte'
   import { get } from 'svelte/store'
-  import { optionsStore } from './store'
+  import {optionsStore, paymentErrorsStore} from './store'
   import { checkInvalidOptions } from './utils.svelte'
 
   let modalVisible
@@ -39,6 +39,10 @@
 
   const closeModal = () => {
     modalVisible = false
+
+    const paymentError = get(paymentErrorsStore)
+    const options = get(optionsStore)
+    options.onModalClose(paymentError)
   }
 </script>
 
