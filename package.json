@@ -1,6 +1,6 @@
 {
   "name": "@portittech/pay-with-toonie",
-  "version": "0.6.4",
+  "version": "0.7.0",
   "private": false,
   "main": "dist/pay-with-toonie.dist.js",
   "repository": {
