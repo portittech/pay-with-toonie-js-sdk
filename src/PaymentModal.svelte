@@ -40,9 +40,7 @@
             <div class="pwt-modal__message">
               There was an issue with loading data for this payment
             </div>
-            <button on:click={closeModal} class="pwt-modal__btn"
-              >Close</button
-            >
+            <button on:click={closeModal} class="pwt-modal__btn">Close</button>
           </div>
         {/if}
         {#if !loadDataError && !qrCodeValue}
@@ -236,7 +234,6 @@
       font-size: 0.8rem;
       line-height: 1.5rem;
       max-width: 200px;
-      text-align: center;
       color: var(--toonie-secondary-color);
     }
 
@@ -271,7 +268,7 @@
 
     &__btn {
       background: var(--toonie-secondary-color);
-      box-shadow: 0px 4px 15px rgba(244, 201, 19, 0.3);
+      box-shadow: 0 4px 15px rgba(244, 201, 19, 0.3);
       border-radius: 30px;
       outline: 0;
       border: 0;

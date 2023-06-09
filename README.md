@@ -7,19 +7,17 @@ Further official integration documentation can be found [here](https://github.co
 ### Usage
 
 ```html
+
 <script src="https://unpkg.com/@portittech/pay-with-toonie/dist/pay-with-toonie.dist.js"></script>
-<link
-  rel="stylesheet"
-  href="https://unpkg.com/@portittech/pay-with-toonie/dist/pay-with-toonie.dist.css"
-/>
+<link rel="stylesheet" href="https://unpkg.com/@portittech/pay-with-toonie/dist/pay-with-toonie.dist.css"/>
 
 <div>
-  <div id="print-here-toonie-payment-form"></div>
+    <div id="print-here-toonie-payment-form"></div>
 </div>
 ```
 
 ```js
-const getPaymentData = async () => {
+const getTokenData = async () => {
   // Auth to get token
   // ATTENTION: MAKE SURE NOT TO INCLUDE THIS AUTHENTICATION SNIPPET IN YOUR CLIENTSIDE APPLICATION
   // THIS HAS BEEN DONE FOR DEMONSTRATION PURPOSES ONLY!!!!
@@ -39,7 +37,11 @@ const getPaymentData = async () => {
     }
   );
 
-  const tokenData = await tokenRes.json();
+  return await tokenRes.json();
+}
+
+const getPaymentData = async () => {
+  const tokenData = await getTokenData();
 
   //Create payment intent
   const res = await fetch("https://<ENVIRONMENT_API_URL>/offers/v1/payments", {
@@ -66,6 +68,49 @@ const getPaymentData = async () => {
   };
 };
 
+const createCardPaymentIntent = async (paymentSessionId) => {
+  const tokenData = await getTokenData();
+
+  const res = await fetch('https://<ENVIRONMENT_API_URL>/acquiring/v1/card/custom', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${tokenData.access_token}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({
+      "amount": "1.1",
+      "walletId": "<MERCHANTWALLETID>",
+      "currency": "EUR",
+      "paymentSessionId": paymentSessionId,
+      "reason": "Test Payment Card 01"
+    }),
+  });
+
+  const data = await res.json();
+
+  return {
+    "clientSecret": data.clientSecret,
+    "paymentId": data.paymentIntentId,
+  };
+}
+
+const approveCardPayment = async (paymentId) => {
+  const tokenData = await getTokenData();
+
+  return await fetch(`https://<ENVIRONMENT_API_URL>/acquiring/v1/card/${paymentId}/approve`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${tokenData.access_token}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({
+      "amount": "1.1",
+      "walletId": "<MERCHANTWALLETID>",
+      "currency": "EUR",
+    }),
+  });
+}
+
 const failurePaymentCallback = err => {
   console.log("userError", err);
 };
@@ -79,7 +124,7 @@ const genericErrorCallback = error => {
 };
 
 const onModalCloseCallback = possiblePaymentStatusInError => {
-  if(possiblePaymentStatusInError)
+  if (possiblePaymentStatusInError)
     console.error(possiblePaymentStatusInError);
 };
 
@@ -88,9 +133,11 @@ const baseUrl = "https://example_url";
 const options = {
   getPaymentData,
   successPaymentCallback,
-  failurePaymentCallback, 
+  failurePaymentCallback,
   genericErrorCallback,
   onModalCloseCallback,
+  createCardPaymentIntent,
+  approveCardPayment,
   baseUrl,
 };
 // builds the UI for the form
@@ -99,12 +146,13 @@ PayWithToonie.render(
   options
 );
 PayWithToonie.getStopPollingHandle((stopPollingHandle) => {
-    // stopPollingHandle is a function you can call whenever you want to force the polling
+  // stopPollingHandle is a function you can call whenever you want to force the polling
 })
 ```
 
 ### JS SDK Integration
 
 Pay With Toonie JS SDK [npm package url](https://www.npmjs.com/package/@portittech/pay-with-toonie)  
-Pay With Toonie JS SDK [javascript component](https://unpkg.com/@portittech/pay-with-toonie/dist/pay-with-toonie.dist.js)  
+Pay With Toonie JS
+SDK [javascript component](https://unpkg.com/@portittech/pay-with-toonie/dist/pay-with-toonie.dist.js)  
 Pay With Toonie JS SDK [css styles](https://unpkg.com/@portittech/pay-with-toonie/dist/pay-with-toonie.dist.css)

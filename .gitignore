@@ -3,5 +3,7 @@ public/build
 dist
 .idea
 .vscode
+.env
+.env.*
 
 .DS_Store
