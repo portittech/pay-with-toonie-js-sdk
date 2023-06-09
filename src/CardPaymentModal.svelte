@@ -4,7 +4,7 @@
   import { get } from "svelte/store";
   import { optionsStore } from "./store.js";
 
-  export let cardModalVisible = false
+  export let cardModalVisible
   export let loadDataError
   export let stripe
   export let cardPaymentData

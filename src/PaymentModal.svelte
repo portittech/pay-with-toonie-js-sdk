@@ -2,8 +2,7 @@
   import QRCode from './QRJS.svelte'
   import { pollForNewPayment } from './Polling.svelte'
 
-  export let modalVisible = false
-
+  export let modalVisible
   export let paymentShortReference
   export let loadDataError
   export let paymentData
@@ -81,7 +80,7 @@
               >
             </div>
           {:catch error}
-            <div class="pwt-modal__content">
+            <div class="pwt-modal__body">
               <div class="pwt-modal__title pwt-modal__title--error">Error</div>
               <div class="pwt-modal__icon">
                 <svg
@@ -117,7 +116,7 @@
               </div>
               <div class="pwt-modal__message">{error.message}</div>
               <button on:click={closeModal} class="pwt-modal__btn">
-                close
+                Close
               </button>
             </div>
           {/await}

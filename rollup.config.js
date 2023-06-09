@@ -6,6 +6,11 @@ import { terser } from "rollup-plugin-terser";
 import sveltePreprocess from "svelte-preprocess";
 import css from "rollup-plugin-css-only";
 import json from "@rollup/plugin-json";
+import { config } from "dotenv";
+import replace from "@rollup/plugin-replace";
+
+// Load environment variables from .env file
+config();
 
 const production = !process.env.ROLLUP_WATCH;
 
@@ -50,6 +55,19 @@ export default {
       },
       preprocess: sveltePreprocess(),
     }),
+
+    replace({
+      // Replace .env variables with the actual value
+
+      "process.env.PUBLIC_STRIPE_KEY": JSON.stringify(
+        process.env.PUBLIC_STRIPE_KEY
+      ),
+      "process.env.SECRET_STRIPE_KEY": JSON.stringify(
+        process.env.SECRET_STRIPE_KEY
+      ),
+      preventAssignment: true,
+    }),
+
     // we'll extract any component CSS out into
     // a separate file - better for performance
     css({ output: "pay-with-toonie.dist.css" }),
@@ -63,6 +81,7 @@ export default {
       browser: true,
       dedupe: ["svelte"],
     }),
+
     commonjs(),
 
     json(),
