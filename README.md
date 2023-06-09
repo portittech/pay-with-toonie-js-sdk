@@ -4,6 +4,18 @@
 
 Further official integration documentation can be found [here](https://github.com/portittech/pay-with-toonie-doc).
 
+### Environment variables
+
+This project is using variable from a `.env` file, you can see the list on the `rollup.config.js` file.
+
+You must create a `.env` file in the root of the project and give a value to the variables you need to use.
+
+If you need to add new environment values on the `.env` file, remember to add them on the `rollup.config.js` file too,
+to make them available around the code.
+
+Environment variables, when declared correctly, can be accessed in this way `process.env.<VARIABLE_NAME>` using the
+Node.js `process` object.
+
 ### Usage
 
 ```html
@@ -39,9 +51,8 @@ const getTokenData = async () => {
         }),
       }
     );
-
     return await tokenRes.json();
-  }
+  };
 
 /**
  * PAYMENT CREATION
@@ -146,7 +157,7 @@ const createStreamPaymentIntent = async () => {
   const data = await res.json()
 
   return {
-    paymentIntentStreamId: data.paymentIntentStreamId,
+    intentId: data.id,
     amount: data.amount,
     currency: data.currency,
     walletId: data.walletId,
@@ -154,10 +165,10 @@ const createStreamPaymentIntent = async () => {
   }
 };
 
-const approveStreamPayment = async (paymentIntentStreamId) => {
+const approveStreamPayment = async (paymentIntentId) => {
   const tokenData = await getTokenData();
 
-  return await fetch(`https://<ENVIRONMENT_API_URL>/acquiring/v1/stream/approve/${paymentIntentStreamId}`, {
+  return await fetch(`https://<ENVIRONMENT_API_URL>/acquiring/v1/stream/approve/${paymentIntentId}`, {
     method: 'PUT',
     headers: {
       Authorization: `Bearer ${tokenData.access_token}`,
@@ -166,10 +177,10 @@ const approveStreamPayment = async (paymentIntentStreamId) => {
   });
 }
 
-const rejectStreamPayment = async (paymentIntentStreamId) => {
+const rejectStreamPayment = async (paymentIntentId) => {
   const tokenData = await getTokenData();
 
-  return await fetch(`https://<ENVIRONMENT_API_URL>/acquiring/v1/stream/reject/${paymentIntentStreamId}`, {
+  return await fetch(`https://<ENVIRONMENT_API_URL>/acquiring/v1/stream/reject/${paymentIntentId}`, {
     method: 'PUT',
     headers: {
       Authorization: `Bearer ${tokenData.access_token}`,
@@ -178,10 +189,10 @@ const rejectStreamPayment = async (paymentIntentStreamId) => {
   });
 }
 
-const fetchStreamPaymentIntent = async (paymentIntentStreamId) => {
+const fetchStreamPaymentIntent = async (paymentIntentId) => {
   const tokenData = await getTokenData();
 
-  return await fetch(`https://<ENVIRONMENT_API_URL>/acquiring/v1/stream/${paymentIntentStreamId}`, {
+  return await fetch(`https://<ENVIRONMENT_API_URL>/acquiring/v1/stream/${paymentIntentId}`, {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${tokenData.access_token}`,
@@ -206,12 +217,17 @@ const genericErrorCallback = error => {
   console.error("Error!!", error);
 };
 
-const onModalCloseCallback = possiblePaymentStatusInError => {
+const onModalClose = possiblePaymentStatusInError => {
   if (possiblePaymentStatusInError)
     console.error(possiblePaymentStatusInError);
 };
 
 const baseUrl = "https://<ENVIRONMENT_API_URL>";
+
+// CHOOSE WHICH BUTTONS TO RENDER
+const renderPayWithToonieButton = true;
+const renderStreamWithToonieButton = true;
+const renderPayWithCardButton = true;
 
 const options = {
   getPaymentData,
@@ -224,8 +240,11 @@ const options = {
   successPaymentCallback,
   failurePaymentCallback,
   genericErrorCallback,
-  onModalCloseCallback,
+  onModalClose,
   baseUrl,
+  renderPayWithToonieButton,
+  renderStreamWithToonieButton,
+  renderPayWithCardButton,
 };
 
 // builds the UI for the form

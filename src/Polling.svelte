@@ -4,6 +4,8 @@
 
   const POLL_INTERVAL = 5000
 
+  const MAX_ATTEMPTS = 10
+
   const poll = async ({ interval, maxAttempts, paymentData, paymentType }) => {
     const options = get(optionsStore)
     let attempts = 0
@@ -65,12 +67,12 @@
 
     const streamPaymentIntentRequest = async () => {
       try {
-        const res = await options.fetchStreamPaymentIntent(paymentData.paymentIntentStreamId)
+        const res = await options.fetchStreamPaymentIntent(paymentData.intentId)
         if (res.ok) {
           return await res.json();
         } else {
           options.failurePaymentCallback(
-            new Error(`${res.status} ${res.statusText}`)
+            new Error(`Failed to retrieve intent with ID: ${res.id ?? "N/A"}, status: ${res.status}, reason: ${res.reason}`)
           )
         }
       } catch (error) {
@@ -82,18 +84,19 @@
       const paymentStatus = await streamPaymentIntentRequest();
       attempts++
 
-      if (paymentStatus.status === 'APPROVED') {
+      if (paymentStatus.status === 'ACCEPTED') {
         // Show to user success message
-        if (options.approveStreamPayment) {
-          options.approveStreamPayment(paymentStatus.paymentIntentStreamId)
+        if (options.successPaymentCallback) {
+          options.successPaymentCallback(paymentStatus, paymentData)
         }
         paymentErrorsStore.set(undefined)
         return resolve(paymentStatus)
       } else if (paymentStatus.status === 'REJECTED') {
-        if (options.rejectStreamPayment) {
-          options.rejectStreamPayment(paymentStatus.paymentIntentStreamId)
-        }
         // Show to user error message
+        if (options.failurePaymentCallback) {
+          options.failurePaymentCallback(paymentStatus, paymentData)
+        }
+
         paymentErrorsStore.set({
           paymentStatus,
           attempts
@@ -125,6 +128,7 @@
   export const pollForNewPayment = (paymentData, paymentType) =>
     poll({
       interval: POLL_INTERVAL,
+      maxAttempts: MAX_ATTEMPTS,
       paymentData,
       paymentType,
     })
