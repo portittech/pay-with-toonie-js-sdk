@@ -17,33 +17,40 @@ Further official integration documentation can be found [here](https://github.co
 ```
 
 ```js
-const getTokenData = async () => {
-  // Auth to get token
-  // ATTENTION: MAKE SURE NOT TO INCLUDE THIS AUTHENTICATION SNIPPET IN YOUR CLIENTSIDE APPLICATION
-  // THIS HAS BEEN DONE FOR DEMONSTRATION PURPOSES ONLY!!!!
-  const tokenRes = await fetch(
-    "https://<ENVIRONMENT_AUTH_URL>/auth/realms/toonie/protocol/openid-connect/token",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: new URLSearchParams({
-        grant_type: "password",
-        client_id: "pay-with-toonie",
-        username: "customerusername",
-        password: "customerpassword",
-      }),
-    }
-  );
+/**
+ * Auth to get token
+ * ATTENTION: MAKE SURE NOT TO INCLUDE THIS AUTHENTICATION SNIPPET IN YOUR CLIENTSIDE APPLICATION
+ * THIS HAS BEEN DONE FOR DEMONSTRATION PURPOSES ONLY!!!!
+ */
 
-  return await tokenRes.json();
-}
+const getTokenData = async () => {
+    const tokenRes = await fetch(
+      "https://<ENVIRONMENT_AUTH_URL>/auth/realms/toonie/protocol/openid-connect/token",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          grant_type: "password",
+          client_id: "pay-with-toonie",
+          username: "customerusername",
+          password: "customerpassword",
+        }),
+      }
+    );
+
+    return await tokenRes.json();
+  }
+
+/**
+ * PAYMENT CREATION
+ */
 
 const getPaymentData = async () => {
   const tokenData = await getTokenData();
 
-  //Create payment intent
+  // Create payment intent
   const res = await fetch("https://<ENVIRONMENT_API_URL>/offers/v1/payments", {
     method: "POST",
     headers: {
@@ -67,6 +74,10 @@ const getPaymentData = async () => {
     paymentShortReference: data.shortReference,
   };
 };
+
+/**
+ * PAYMENT BY CARD CALLBACKS
+ */
 
 const createCardPaymentIntent = async (paymentSessionId) => {
   const tokenData = await getTokenData();
@@ -111,12 +122,84 @@ const approveCardPayment = async (paymentId) => {
   });
 }
 
-const failurePaymentCallback = err => {
-  console.log("userError", err);
+/**
+ * STREAM WITH TOONIE CALLBACKS
+ */
+
+const createStreamPaymentIntent = async () => {
+  const tokenData = await getTokenData();
+
+  const res = await fetch('https://<ENVIRONMENT_API_URL>/acquiring/v1/stream', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${tokenData.access_token}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({
+      "amount": "1.12",
+      "currency": "EUR",
+      "walletId": "<MERCHANTWALLETID>",
+      "type": "Stream",
+    })
+  })
+
+  const data = await res.json()
+
+  return {
+    paymentIntentStreamId: data.paymentIntentStreamId,
+    amount: data.amount,
+    currency: data.currency,
+    walletId: data.walletId,
+    reason: data.reason,
+  }
 };
+
+const approveStreamPayment = async (paymentIntentStreamId) => {
+  const tokenData = await getTokenData();
+
+  return await fetch(`https://<ENVIRONMENT_API_URL>/acquiring/v1/stream/approve/${paymentIntentStreamId}`, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${tokenData.access_token}`,
+      "content-type": "application/json",
+    },
+  });
+}
+
+const rejectStreamPayment = async (paymentIntentStreamId) => {
+  const tokenData = await getTokenData();
+
+  return await fetch(`https://<ENVIRONMENT_API_URL>/acquiring/v1/stream/reject/${paymentIntentStreamId}`, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${tokenData.access_token}`,
+      "content-type": "application/json",
+    },
+  });
+}
+
+const fetchStreamPaymentIntent = async (paymentIntentStreamId) => {
+  const tokenData = await getTokenData();
+
+  return await fetch(`https://<ENVIRONMENT_API_URL>/acquiring/v1/stream/${paymentIntentStreamId}`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${tokenData.access_token}`,
+      "content-type": "application/json",
+    }
+  });
+}
+
+/**
+ * RESULT CALLBACKS
+ */
 
 const successPaymentCallback = data => {
   console.log("Success!!", data);
+};
+
+const failurePaymentCallback = err => {
+  console.log("userError", err);
 };
 
 const genericErrorCallback = error => {
@@ -128,23 +211,29 @@ const onModalCloseCallback = possiblePaymentStatusInError => {
     console.error(possiblePaymentStatusInError);
 };
 
-const baseUrl = "https://example_url";
+const baseUrl = "https://<ENVIRONMENT_API_URL>";
 
 const options = {
   getPaymentData,
+  createCardPaymentIntent,
+  approveCardPayment,
+  createStreamPaymentIntent,
+  approveStreamPayment,
+  rejectStreamPayment,
+  fetchStreamPaymentIntent,
   successPaymentCallback,
   failurePaymentCallback,
   genericErrorCallback,
   onModalCloseCallback,
-  createCardPaymentIntent,
-  approveCardPayment,
   baseUrl,
 };
+
 // builds the UI for the form
 PayWithToonie.render(
   document.querySelector("#print-here-toonie-payment-form"),
   options
 );
+
 PayWithToonie.getStopPollingHandle((stopPollingHandle) => {
   // stopPollingHandle is a function you can call whenever you want to force the polling
 })
