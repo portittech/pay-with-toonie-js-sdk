@@ -2,20 +2,18 @@
   import QRCode from './QRJS.svelte'
   import { pollForNewPayment } from './Polling.svelte'
 
-  export let modalVisible = false
-
-  export let paymentShortReference
+  export let streamModalVisible = false
   export let loadDataError
-  export let paymentData
+  export let streamPaymentData
   export let qrCodeValue
   export let closeModal
 </script>
 
 <div>
-  <div class="pwt-modal {modalVisible ? 'pwt-modal--visible' : ''}">
+  <div class="pwt-modal {streamModalVisible ? 'pwt-modal--visible' : ''}">
     <div class="pwt-modal__content">
       <div on:click={closeModal} class="pwt-modal__close-icon">X</div>
-      {#if modalVisible}
+      {#if streamModalVisible}
         {#if loadDataError}
           <div class="pwt-modal__body">
             <div class="pwt-modal__title pwt-modal__title--error">Error</div>
@@ -46,14 +44,13 @@
         {#if !loadDataError && !qrCodeValue}
           <p>Loading...</p>
         {/if}
-        {#if qrCodeValue && paymentData && !loadDataError}
-          {#await pollForNewPayment(paymentData, "PWT")}
+        {#if qrCodeValue && streamPaymentData && !loadDataError}
+          {#await pollForNewPayment(streamPaymentData, "stream")}
             <div class="pwt-modal__body">
               <QRCode codeValue={qrCodeValue} />
               <div class="pwt-modal__message">
-                Scan QR-code with your app or type letter-code
+                Scan QR-code with your app
               </div>
-              <div class="pwt-modal__letter-code">{paymentShortReference}</div>
             </div>
           {:then}
             <div class="pwt-modal__body">
