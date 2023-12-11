@@ -48,6 +48,16 @@
         {#if qrCodeValue && paymentData && !loadDataError}
           {#await pollForNewPayment(paymentData, "PWT")}
             <div class="pwt-modal__body">
+              <div class="pwt-modal__payment-data">
+              <div class="pwt-modal__subtitle">
+                Amount
+              </div>
+              {paymentData.amount} {paymentData.currency}
+              <div class="pwt-modal__subtitle">
+                {paymentData.date}
+              </div>
+              {paymentData.reason}
+              </div>
               <QRCode codeValue={qrCodeValue} />
               <div class="pwt-modal__message">
                 Scan QR-code with your app or type letter-code
@@ -192,7 +202,7 @@
       padding: 3rem 2rem 1rem;
       font-family: 'Comfortaa', cursive;
       position: relative;
-      min-width: 200px;
+      min-width: 240px;
     }
 
     &__close-icon {
@@ -211,6 +221,14 @@
       animation: fade-up 0.5s forwards;
     }
 
+    &__payment-data {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 1rem;
+      gap: 1rem;
+    }
+
     &__title {
       color: var(--toonie-primary-color);
 
@@ -220,6 +238,12 @@
 
       font-size: 1.2rem;
       margin-bottom: 1.5rem;
+    }
+
+    &__subtitle {
+      color: var(--toonie-grey-color);
+      font-size: 1rem;
+      font-weight: bold;
     }
 
     &__icon svg {

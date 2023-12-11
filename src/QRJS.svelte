@@ -4,9 +4,9 @@
   export let codeValue;
 
   // size of the QrCode square in pixels
-  const squareSize = 120;
+  const squareSize = 130;
 </script>
 
 <div class="container">
-  <QrCode value={codeValue} size={squareSize} />
+    <QrCode value={codeValue} size={squareSize}/>
 </div>

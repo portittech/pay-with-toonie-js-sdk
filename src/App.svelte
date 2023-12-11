@@ -239,6 +239,7 @@
     --toonie-secondary-color: #f4b31d;
     --toonie-main-white: #fff;
     --toonie-error-color: #b22929;
+    --toonie-grey-color: #797979;
   }
 
   .primary-btn {
