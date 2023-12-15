@@ -58,7 +58,7 @@ const getTokenData = async () => {
  * PAYMENT CREATION
  */
 
-const getPaymentData = async () => {
+const getPaymentData = async (amount, currency, reason) => {
   const tokenData = await getTokenData();
 
   // Create payment intent
@@ -69,10 +69,10 @@ const getPaymentData = async () => {
       "content-type": "application/json",
     },
     body: JSON.stringify({
-      amount: "0.05",
-      reason: "Test Payment 01",
+      amount: amount ?? "0.05",
+      reason: reason ?? "Test Payment 01",
       destinationWalletId: "<MERCHANTWALLETID>",
-      transactionCurrency: "EUR",
+      transactionCurrency: currency ?? "EUR",
     }),
   });
 
@@ -83,14 +83,42 @@ const getPaymentData = async () => {
     paymentSessionId: data.paymentSessionId,
     otp: data.otp,
     paymentShortReference: data.shortReference,
+    amount: data.amount,
+    currency: data.transactionCurrency,
+    reason: data.reason,
+    date: data.dateCreated
   };
 };
+
+// GET PAYMENT DATA BY SESSION ID
+const fetchPaymentDataBySessionId = async (paymentSessionId) => {
+  const tokenData = await getTokenData();
+
+  const res = await fetch(`https://<ENVIRONMENT_API_URL>/acquiring/v1/payment/${paymentSessionId}`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${tokenData.access_token}`,
+      "content-type": "application/json",
+    },
+  })
+
+  const data = await res.json()
+
+  return {
+    paymentSessionId: data.sessionId,
+    amount: data.amount,
+    currency: data.currency,
+    reason: data.reason,
+    successUrl: data.successUrl,
+    errorUrl: data.errorUrl,
+  }
+}
 
 /**
  * PAYMENT BY CARD CALLBACKS
  */
 
-const createCardPaymentIntent = async (paymentSessionId) => {
+const createCardPaymentIntent = async (paymentSessionId, amount, currency, reason) => {
   const tokenData = await getTokenData();
 
   const res = await fetch('https://<ENVIRONMENT_API_URL>/acquiring/v1/card/custom', {
@@ -100,11 +128,11 @@ const createCardPaymentIntent = async (paymentSessionId) => {
       "content-type": "application/json",
     },
     body: JSON.stringify({
-      "amount": "1.1",
+      "amount": amount ?? "1.1",
       "walletId": "<MERCHANTWALLETID>",
-      "currency": "EUR",
+      "currency": currency ?? "EUR",
       "paymentSessionId": paymentSessionId,
-      "reason": "Test Payment Card 01"
+      "reason": reason ?? "Test Payment Card 01"
     }),
   });
 
@@ -113,10 +141,11 @@ const createCardPaymentIntent = async (paymentSessionId) => {
   return {
     "clientSecret": data.clientSecret,
     "paymentId": data.paymentIntentId,
+    "currency": data.currency,
   };
 }
 
-const approveCardPayment = async (paymentId) => {
+const approveCardPayment = async (paymentId, currency) => {
   const tokenData = await getTokenData();
 
   return await fetch(`https://<ENVIRONMENT_API_URL>/acquiring/v1/card/${paymentId}/approve`, {
@@ -126,9 +155,7 @@ const approveCardPayment = async (paymentId) => {
       "content-type": "application/json",
     },
     body: JSON.stringify({
-      "amount": "1.1",
-      "walletId": "<MERCHANTWALLETID>",
-      "currency": "EUR",
+      "currency": currency,
     }),
   });
 }
@@ -137,7 +164,7 @@ const approveCardPayment = async (paymentId) => {
  * STREAM WITH TOONIE CALLBACKS
  */
 
-const createStreamPaymentIntent = async () => {
+const createStreamPaymentIntent = async (amount, currency) => {
   const tokenData = await getTokenData();
 
   const res = await fetch('https://<ENVIRONMENT_API_URL>/acquiring/v1/stream', {
@@ -147,8 +174,8 @@ const createStreamPaymentIntent = async () => {
       "content-type": "application/json",
     },
     body: JSON.stringify({
-      "amount": "1.12",
-      "currency": "EUR",
+      "amount": amount ?? "1.12",
+      "currency": currency ?? "EUR",
       "walletId": "<MERCHANTWALLETID>",
       "type": "Stream",
     })
@@ -158,6 +185,7 @@ const createStreamPaymentIntent = async () => {
 
   return {
     intentId: data.id,
+    intentStreamId: data.paymentIntentStreamId,
     amount: data.amount,
     currency: data.currency,
     walletId: data.walletId,
@@ -231,6 +259,7 @@ const renderPayWithCardButton = true;
 
 const options = {
   getPaymentData,
+  fetchPaymentDataBySessionId,
   createCardPaymentIntent,
   approveCardPayment,
   createStreamPaymentIntent,

@@ -7,6 +7,8 @@
   export let streamPaymentData
   export let qrCodeValue
   export let closeModal
+  export let successUrl
+  export let errorUrl
 </script>
 
 <div>
@@ -45,7 +47,7 @@
           <p>Loading...</p>
         {/if}
         {#if qrCodeValue && streamPaymentData && !loadDataError}
-          {#await pollForNewPayment(streamPaymentData, "stream")}
+          {#await pollForNewPayment(streamPaymentData, "stream", successUrl, errorUrl)}
             <div class="pwt-modal__body">
               <QRCode codeValue={qrCodeValue} />
               <div class="pwt-modal__message">

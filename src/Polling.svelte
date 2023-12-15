@@ -6,7 +6,7 @@
 
   const MAX_ATTEMPTS = 10
 
-  const poll = async ({ interval, maxAttempts, paymentData, paymentType }) => {
+  const poll = async ({ interval, maxAttempts, paymentData, paymentType, successUrl, errorUrl }) => {
     const options = get(optionsStore)
     let attempts = 0
 
@@ -39,6 +39,11 @@
           options.successPaymentCallback(paymentStatus, paymentData)
         }
         paymentErrorsStore.set(undefined)
+
+        if (successUrl) {
+          location.href = successUrl
+        }
+
         return resolve(paymentStatus)
       } else if (paymentStatus.status === 'REJECTED') {
         // Show to user error message
@@ -53,6 +58,11 @@
           paymentStatus,
           attempts
         })
+
+        if (errorUrl) {
+          location.href = errorUrl
+        }
+
         return reject(new Error('Exceeded max attempts'))
       } else {
         // continue polling
@@ -90,6 +100,11 @@
           options.successPaymentCallback(paymentStatus, paymentData)
         }
         paymentErrorsStore.set(undefined)
+
+        if (successUrl) {
+          location.href = successUrl
+        }
+
         return resolve(paymentStatus)
       } else if (paymentStatus.status === 'REJECTED') {
         // Show to user error message
@@ -101,6 +116,11 @@
           paymentStatus,
           attempts
         })
+
+        if (errorUrl) {
+          location.href = errorUrl
+        }
+
         return reject(new Error('Payment was rejected'))
       } else if (maxAttempts && attempts === maxAttempts) {
         // Show to user error message
@@ -116,7 +136,6 @@
           const timeoutId = setTimeout(executeStreamPoll, interval, resolve, reject);
           pollingStore.set(timeoutId)
         }
-
       }
     }
 
@@ -125,11 +144,13 @@
     if (paymentType === "stream") return new Promise(executeStreamPoll);
   }
 
-  export const pollForNewPayment = (paymentData, paymentType) =>
+  export const pollForNewPayment = (paymentData, paymentType, successUrl, errorUrl) =>
     poll({
       interval: POLL_INTERVAL,
       maxAttempts: MAX_ATTEMPTS,
       paymentData,
       paymentType,
+      successUrl,
+      errorUrl,
     })
 </script>

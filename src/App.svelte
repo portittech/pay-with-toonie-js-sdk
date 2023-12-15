@@ -9,28 +9,48 @@
   import StreamPaymentModal from "./StreamPaymentModal.svelte";
   import { checkInvalidOptions } from './utils.svelte'
 
-  let modalVisible
-  let paymentShortReference
-  let loadDataError = false
-  let qrCodeValue
-  let paymentData
-
-  let stripe;
-  let cardModalVisible = false;
-  let streamModalVisible = false;
-  let cardPaymentData;
-  let streamPaymentData;
-
   const options = get(optionsStore)
+  const paymentSessionIdUrlKey = "orderId"
+
+  const PUBLIC_STRIPE_KEY = process.env.PUBLIC_STRIPE_KEY
+  // SECRET_STRIPE_KEY= TODO: will be valued when ready for prod
+
+  let qrCodeValue
+  let paymentSessionData
 
   // validating options object provided in the render method
-  loadDataError = checkInvalidOptions(options)
+  let loadDataError = checkInvalidOptions(options)
 
-  const PUBLIC_STRIPE_KEY = process.env.PUBLIC_STRIPE_KEY;
-  // SECRET_STRIPE_KEY= TODO: will be valued when ready for prod
+  // PWT
+  let pwtModalVisible = false
+  let paymentShortReference
+  let paymentData
+
+  // CARD
+  let cardModalVisible = false
+  let cardPaymentData
+  let stripe
+
+  // STREAM
+  let streamModalVisible = false
+  let streamPaymentData
 
   onMount(async () => {
     stripe = await loadStripe(PUBLIC_STRIPE_KEY);
+
+    const urlParams = new URLSearchParams(location.search);
+
+    if (urlParams.has(paymentSessionIdUrlKey)) {
+      const paymentSessionId = urlParams.get(paymentSessionIdUrlKey)
+
+      try {
+        paymentSessionData = await options.fetchPaymentDataBySessionId(paymentSessionId)
+      } catch (e) {
+        options.failurePaymentCallback(e)
+        loadDataError = true
+        console.warn('There was an issue with loading data for this payment')
+      }
+    }
   })
 
   const onButtonClick = async (selectedPaymentType) => {
@@ -40,7 +60,10 @@
     try {
       if (selectedPaymentType === "stream") {
         try {
-          streamPaymentData = await options.createStreamPaymentIntent();
+          streamPaymentData = await options.createStreamPaymentIntent(
+            paymentSessionData?.amount,
+            paymentSessionData?.currency,
+          );
 
           if (streamPaymentData.intentId) {
             loadDataError = false;
@@ -64,13 +87,21 @@
           console.warn('There was an issue with loading data for this stream')
         }
       } else {
-        paymentData = await options.getPaymentData()
-
+        paymentData = await options.getPaymentData(
+          paymentSessionData?.amount,
+          paymentSessionData?.currency,
+          paymentSessionData?.reason,
+        )
         if (paymentData.paymentSessionId) {
           switch (selectedPaymentType) {
             case "card":
               try {
-                cardPaymentData = await options.createCardPaymentIntent(paymentData.paymentSessionId);
+                cardPaymentData = await options.createCardPaymentIntent(
+                  paymentSessionData?.paymentSessionId,
+                  paymentSessionData?.amount,
+                  paymentSessionData?.currency,
+                  paymentSessionData?.reason,
+                );
 
                 if (cardPaymentData.clientSecret && cardPaymentData.paymentId) {
                   loadDataError = false;
@@ -93,7 +124,7 @@
                 otp: paymentData.otp,
                 $: 'PWT',
               })
-              modalVisible = true
+              pwtModalVisible = true
           }
         } else {
           loadDataError = true
@@ -108,7 +139,7 @@
   }
 
   const closeModal = () => {
-    modalVisible = false
+    pwtModalVisible = false
     cardModalVisible = false
     streamModalVisible = false
 
@@ -158,12 +189,14 @@
         </button>
 
         <PaymentModal
-                {modalVisible}
+                {pwtModalVisible}
                 {paymentShortReference}
                 {qrCodeValue}
                 {loadDataError}
                 {paymentData}
                 {closeModal}
+                successUrl="{paymentSessionData?.successUrl}"
+                errorUrl="{paymentSessionData?.errorUrl}"
         />
     {/if}
 
@@ -210,6 +243,8 @@
                 {loadDataError}
                 {streamPaymentData}
                 {closeModal}
+                successUrl="{paymentSessionData?.successUrl}"
+                errorUrl="{paymentSessionData?.errorUrl}"
         />
     {/if}
 
@@ -225,6 +260,8 @@
                         {stripe}
                         {cardPaymentData}
                         {closeModal}
+                        successUrl="{paymentSessionData?.successUrl}"
+                        errorUrl="{paymentSessionData?.errorUrl}"
                 />
             {/if}
         </Elements>
