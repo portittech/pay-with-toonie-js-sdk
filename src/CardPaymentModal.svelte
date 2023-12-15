@@ -1,6 +1,5 @@
 <script>
-
-  import { Elements, CardNumber, CardExpiry, CardCvc } from "svelte-stripe";
+  import { CardCvc, CardExpiry, CardNumber, Elements } from "svelte-stripe";
   import { get } from "svelte/store";
   import { optionsStore } from "./store.js";
 
@@ -9,6 +8,8 @@
   export let stripe
   export let cardPaymentData
   export let closeModal
+  export let successUrl
+  export let errorUrl
 
   let processing = false
   let error
@@ -40,11 +41,19 @@
       const options = get(optionsStore)
 
       try {
-        options.approveCardPayment(cardPaymentData.paymentId);
+        options.approveCardPayment(cardPaymentData.paymentId, cardPaymentData.currency);
         success = true;
+
+        if (successUrl) {
+          location.href = successUrl
+        }
       } catch (err) {
         error = err;
         success = false;
+
+        if (errorUrl) {
+          location.href = errorUrl
+        }
         console.error("There was an error during the payment", err)
       }
     }
