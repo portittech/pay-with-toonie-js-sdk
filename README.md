@@ -46,8 +46,8 @@ const getTokenData = async () => {
         body: new URLSearchParams({
           grant_type: "password",
           client_id: "pay-with-toonie",
-          username: "customerusername",
-          password: "customerpassword",
+          username: "customerusername", // on your client implementation this should be crypted
+          password: "customerpassword", // on your client implementation this should be crypted
         }),
       }
     );
