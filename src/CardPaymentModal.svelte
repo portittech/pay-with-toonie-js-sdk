@@ -6,50 +6,51 @@
   export let cardModalVisible
   export let loadDataError
   export let stripe
-  export let cardPaymentData
+  export let paymentData
   export let closeModal
   export let successUrl
   export let errorUrl
 
-  let processing = false
-  let error
-  let success = false;
+  let isPaymentProcessing = false
+  let isPaymentSuccess = false;
+  let paymentError
   let cardNumber
-  let name
+  let payerName
 
-  const submit = async () => {
+  const processCardPayment = async () => {
     // avoid processing duplicates
-    if (processing) return
+    if (isPaymentProcessing) return
 
-    processing = true
+    isPaymentProcessing = true
 
     // confirm payment with card
-    const result = await stripe.confirmCardPayment(cardPaymentData.clientSecret, {
+    const result = await stripe.confirmCardPayment(paymentData.clientSecret, {
       payment_method: {
         card: cardNumber,
         billing_details: {
-          name
+          name: payerName
         }
       }
     })
 
     if (result.error) {
       // payment failed, notify user
-      error = result.error
+      paymentError = result.error
     } else {
       // payment succeeded, redirect to "thank you" page and approve payment on backend
       const options = get(optionsStore)
 
       try {
-        options.approveCardPayment(cardPaymentData.paymentId, cardPaymentData.currency);
-        success = true;
+        await options.approveCardPayment(paymentData.stripePaymentIntentId, paymentData.currency);
+
+        isPaymentSuccess = true;
 
         if (successUrl) {
           location.href = successUrl
         }
       } catch (err) {
-        error = err;
-        success = false;
+        paymentError = err;
+        isPaymentSuccess = false;
 
         if (errorUrl) {
           location.href = errorUrl
@@ -58,7 +59,7 @@
       }
     }
 
-    processing = false;
+    isPaymentProcessing = false;
   }
 </script>
 
@@ -96,7 +97,7 @@
 
                 {:else if !stripe}
                     <p>Loading...</p>
-                {:else if success}
+                {:else if isPaymentSuccess}
                     <div class="card-modal__body">
                         <div class="card-modal__title">Done!</div>
                         <div class="card-modal__icon">
@@ -122,14 +123,15 @@
                     </div>
                 {:else}
                     <div class="card-modal__title">Pay with Card</div>
-                    {#if error}
+                    {#if paymentError}
                         <div class="card-modal__message card-modal__message--error">
-                            {error.message}
+                            {paymentError.message}
                         </div>
                     {/if}
                     <Elements {stripe}>
-                        <form on:submit|preventDefault={submit}>
-                            <input name="name" bind:value={name} placeholder="Your name" disabled={processing}/>
+                        <form on:submit|preventDefault={processCardPayment}>
+                            <input name="name" bind:value={payerName} placeholder="Your name"
+                                   disabled={isPaymentProcessing}/>
                             <CardNumber bind:element={cardNumber} classes={{ base: 'input' }}/>
 
                             <div class="row">
@@ -137,8 +139,8 @@
                                 <CardCvc classes={{ base: 'input' }}/>
                             </div>
 
-                            <button disabled={processing} class="card-modal__btn">
-                                {#if processing}
+                            <button disabled={isPaymentProcessing} class="card-modal__btn">
+                                {#if isPaymentProcessing}
                                     Processing...
                                 {:else}
                                     Pay

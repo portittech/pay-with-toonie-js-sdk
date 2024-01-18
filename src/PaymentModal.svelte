@@ -6,6 +6,7 @@
   export let paymentShortReference
   export let loadDataError
   export let paymentData
+  export let sessionId
   export let qrCodeValue
   export let closeModal
   export let successUrl
@@ -48,7 +49,7 @@
           <p>Loading...</p>
         {/if}
         {#if qrCodeValue && paymentData && !loadDataError}
-          {#await pollForNewPayment(paymentData, "PWT", successUrl, errorUrl)}
+          {#await pollForNewPayment(paymentData, "PWT", successUrl, errorUrl, sessionId)}
             <div class="pwt-modal__body">
               <div class="pwt-modal__payment-data">
               <div class="pwt-modal__subtitle">

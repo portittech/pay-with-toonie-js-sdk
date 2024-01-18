@@ -3,20 +3,31 @@
   import { forcePollingStop, optionsStore, paymentErrorsStore, pollingStore } from './store'
 
   const POLL_INTERVAL = 5000
-
   const MAX_ATTEMPTS = 10
 
-  const poll = async ({ interval, maxAttempts, paymentData, paymentType, successUrl, errorUrl }) => {
+  const poll = async ({ interval, maxAttempts, paymentData, paymentType, successUrl, errorUrl, sessionId }) => {
     const options = get(optionsStore)
+    const baseUrl = options?.baseUrl ?? 'https://api.toonieglobal.com'
+    const checkPaymentStatusEndpoint = `${baseUrl}/acquiring/v1/payment/approve/`
+
     let attempts = 0
 
-    const BASE_URL = options.baseUrl ?? 'https://api.toonieglobal.com'
+    const tokenData = await options.getTokenData();
 
-    const API_ENDPOINT = `${BASE_URL}/offers/v1/payments/status/`
-
-    const paymentIntentRequest = async () => {
+    const getPaymentStatusData = async () => {
       try {
-        const res = await fetch(API_ENDPOINT + paymentData.paymentSessionId)
+        const res = await fetch(checkPaymentStatusEndpoint, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${tokenData.access_token}`,
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({
+            "paymentSessionId": sessionId,
+            "provider": "TOONIE"
+          })
+        })
+
         if (res.ok) {
           return await res.json()
         } else {
@@ -30,11 +41,15 @@
     }
 
     const executePoll = async (resolve, reject) => {
-      const paymentStatus = await paymentIntentRequest()
+      const paymentStatus = await getPaymentStatusData()
       attempts++
 
-      if (paymentStatus.status === 'APPROVED') {
-        // Show to user success message
+      if (paymentStatus.provider.status === 'APPROVED') {
+        // update payment for BE and show to user success message
+        if (options.updatePayment) {
+          await options.updatePayment(sessionId, paymentStatus.provider.status)
+        }
+
         if (options.successPaymentCallback) {
           options.successPaymentCallback(paymentStatus, paymentData)
         }
@@ -45,7 +60,12 @@
         }
 
         return resolve(paymentStatus)
-      } else if (paymentStatus.status === 'REJECTED') {
+      } else if (paymentStatus.provider.status === 'REJECTED') {
+        // update payment for BE
+        if (options.updatePayment) {
+          await options.updatePayment(sessionId, paymentStatus.provider.status)
+        }
+
         // Show to user error message
         paymentErrorsStore.set({
           paymentStatus,
@@ -144,7 +164,7 @@
     if (paymentType === "stream") return new Promise(executeStreamPoll);
   }
 
-  export const pollForNewPayment = (paymentData, paymentType, successUrl, errorUrl) =>
+  export const pollForNewPayment = (paymentData, paymentType, successUrl, errorUrl, sessionId) =>
     poll({
       interval: POLL_INTERVAL,
       maxAttempts: MAX_ATTEMPTS,
@@ -152,5 +172,6 @@
       paymentType,
       successUrl,
       errorUrl,
+      sessionId
     })
 </script>

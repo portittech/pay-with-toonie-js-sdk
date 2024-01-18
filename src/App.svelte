@@ -16,22 +16,18 @@
   // SECRET_STRIPE_KEY= TODO: will be valued when ready for prod
 
   let qrCodeValue
-  let paymentSessionData
+  let paymentDataBySessionId // used to retrieve the payment data from the session id
+  let paymentData // used for testing the sdk purposes
 
   // validating options object provided in the render method
   let loadDataError = checkInvalidOptions(options)
 
-  // PWT
   let pwtModalVisible = false
   let paymentShortReference
-  let paymentData
 
-  // CARD
   let cardModalVisible = false
-  let cardPaymentData
   let stripe
 
-  // STREAM
   let streamModalVisible = false
   let streamPaymentData
 
@@ -44,7 +40,7 @@
       const paymentSessionId = urlParams.get(paymentSessionIdUrlKey)
 
       try {
-        paymentSessionData = await options.fetchPaymentDataBySessionId(paymentSessionId)
+        paymentDataBySessionId = await options.fetchPaymentDataBySessionId(paymentSessionId)
       } catch (e) {
         options.failurePaymentCallback(e)
         loadDataError = true
@@ -52,6 +48,11 @@
       }
     }
   })
+
+  const paymentTypeToProvider = (paymentType) => {
+    if (paymentType === "card") return "STRIPE";
+    if (paymentType === "pwt") return "TOONIE";
+  }
 
   const onButtonClick = async (selectedPaymentType) => {
     // reset forcePollingStop because it could have been valued from the modal closing
@@ -61,8 +62,8 @@
       if (selectedPaymentType === "stream") {
         try {
           streamPaymentData = await options.createStreamPaymentIntent(
-            paymentSessionData?.amount,
-            paymentSessionData?.currency,
+            paymentDataBySessionId?.amount,
+            paymentDataBySessionId?.currency,
           );
 
           if (streamPaymentData.intentId) {
@@ -87,40 +88,42 @@
           console.warn('There was an issue with loading data for this stream')
         }
       } else {
-        paymentData = await options.getPaymentData(
-          paymentSessionData?.amount,
-          paymentSessionData?.currency,
-          paymentSessionData?.reason,
-        )
-        if (paymentData.paymentSessionId) {
+        if (!paymentDataBySessionId) {
+          paymentData = await options.getPaymentData()
+        }
+
+        if (paymentData?.paymentSessionId || paymentDataBySessionId?.paymentSessionId) {
+          const paymentProvider = paymentTypeToProvider(selectedPaymentType);
+
+          try {
+            paymentData = await options.initiatePayment(
+              paymentDataBySessionId?.paymentSessionId,
+              paymentDataBySessionId?.amount,
+              paymentDataBySessionId?.currency,
+              paymentProvider,
+              paymentDataBySessionId?.reason,
+            );
+
+          } catch (error) {
+            options.failurePaymentCallback(error)
+            loadDataError = true
+            console.warn('There was an issue initiating the payment session')
+          }
+
           switch (selectedPaymentType) {
             case "card":
-              try {
-                cardPaymentData = await options.createCardPaymentIntent(
-                  paymentSessionData?.paymentSessionId,
-                  paymentSessionData?.amount,
-                  paymentSessionData?.currency,
-                  paymentSessionData?.reason,
-                );
-
-                if (cardPaymentData.clientSecret && cardPaymentData.paymentId) {
-                  loadDataError = false;
-                } else {
-                  loadDataError = true;
-                  console.warn('Error on loading payment data: missing clientSecret or paymentId')
-                }
-
+              if (paymentData.clientSecret && paymentData.stripePaymentIntentId) {
+                loadDataError = false;
                 cardModalVisible = true;
-              } catch (error) {
-                options.failurePaymentCallback(error)
-                loadDataError = true
-                console.warn('There was an issue with loading data for this payment')
+              } else {
+                loadDataError = true;
+                console.warn('Error on loading payment data: missing clientSecret or paymentId')
               }
               break;
             case "pwt":
               paymentShortReference = paymentData.paymentShortReference
               qrCodeValue = JSON.stringify({
-                paymentSessionId: paymentData.paymentSessionId,
+                paymentSessionId: paymentData.offersSessionId,
                 otp: paymentData.otp,
                 $: 'PWT',
               })
@@ -134,7 +137,7 @@
     } catch (error) {
       options.genericErrorCallback && options.genericErrorCallback(error)
       loadDataError = true
-      console.warn('There was an issue with loading data for this payment')
+      console.warn(`There was an issue with loading data for this payment: ${error}`)
     }
   }
 
@@ -194,9 +197,10 @@
                 {qrCodeValue}
                 {loadDataError}
                 {paymentData}
+                sessionId={paymentDataBySessionId?.paymentSessionId}
                 {closeModal}
-                successUrl="{paymentSessionData?.successUrl}"
-                errorUrl="{paymentSessionData?.errorUrl}"
+                successUrl="{paymentDataBySessionId?.successUrl}"
+                errorUrl="{paymentDataBySessionId?.errorUrl}"
         />
     {/if}
 
@@ -243,8 +247,8 @@
                 {loadDataError}
                 {streamPaymentData}
                 {closeModal}
-                successUrl="{paymentSessionData?.successUrl}"
-                errorUrl="{paymentSessionData?.errorUrl}"
+                successUrl="{paymentDataBySessionId?.successUrl}"
+                errorUrl="{paymentDataBySessionId?.errorUrl}"
         />
     {/if}
 
@@ -258,10 +262,10 @@
                         {cardModalVisible}
                         {loadDataError}
                         {stripe}
-                        {cardPaymentData}
+                        {paymentData}
                         {closeModal}
-                        successUrl="{paymentSessionData?.successUrl}"
-                        errorUrl="{paymentSessionData?.errorUrl}"
+                        successUrl="{paymentDataBySessionId?.successUrl}"
+                        errorUrl="{paymentDataBySessionId?.errorUrl}"
                 />
             {/if}
         </Elements>
