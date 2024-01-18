@@ -89,7 +89,7 @@
         }
       } else {
         if (!paymentDataBySessionId) {
-          paymentData = await options.getPaymentData()
+          paymentData = await options.createPaymentSession()
         }
 
         if (paymentData?.paymentSessionId || paymentDataBySessionId?.paymentSessionId) {

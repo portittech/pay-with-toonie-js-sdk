@@ -6,7 +6,7 @@ Further official integration documentation can be found [here](https://github.co
 
 ### Environment variables
 
-This project is using variable from a `.env` file, you can see the list on the `rollup.config.js` file.
+This project is using variables from a `.env` file, you can see the list on the `rollup.config.js` file.
 
 You must create a `.env` file in the root of the project and give a value to the variables you need to use.
 
@@ -58,21 +58,22 @@ const getTokenData = async () => {
  * PAYMENT CREATION
  */
 
-const getPaymentData = async (amount, currency, reason) => {
+// CREATE A PAYMENT SESSION
+const createPaymentSession = async (amount, currency, reason) => {
   const tokenData = await getTokenData();
 
-  // Create payment intent
-  const res = await fetch("https://<ENVIRONMENT_API_URL>/offers/v1/payments", {
+  const res = await fetch("https://<ENVIRONMENT_API_URL>/acquiring/v1/payment", {
     method: "POST",
     headers: {
       Authorization: ` Bearer ${tokenData.access_token}`,
       "content-type": "application/json",
     },
     body: JSON.stringify({
-      amount: amount ?? "0.05",
+      amount: amount ?? "1.23",
+      currency: currency ?? "EUR",
       reason: reason ?? "Test Payment 01",
-      destinationWalletId: "<MERCHANTWALLETID>",
-      transactionCurrency: currency ?? "EUR",
+      "successUrl": "https://www.success.com",
+      "errorUrl": "https://www.error.com",
     }),
   });
 
@@ -80,13 +81,14 @@ const getPaymentData = async (amount, currency, reason) => {
 
   // Data to be consumed by the SDK
   return {
-    paymentSessionId: data.paymentSessionId,
+    paymentSessionId: data.sessionId,
+    amount: data.amount,
+    currency: data.currency,
+    successUrl: data.successUrl,
+    errorUrl: data.errorUrl,
+    reason: data.reason,
     otp: data.otp,
     paymentShortReference: data.shortReference,
-    amount: data.amount,
-    currency: data.transactionCurrency,
-    reason: data.reason,
-    date: data.dateCreated
   };
 };
 
@@ -114,36 +116,63 @@ const fetchPaymentDataBySessionId = async (paymentSessionId) => {
   }
 }
 
-/**
- * PAYMENT BY CARD CALLBACKS
- */
-
-const createCardPaymentIntent = async (paymentSessionId, amount, currency, reason) => {
+// INITIATE A PAYMENT
+const initiatePayment = async (paymentSessionId, amount, currency, provider, reason) => {
   const tokenData = await getTokenData();
 
-  const res = await fetch('https://<ENVIRONMENT_API_URL>/acquiring/v1/card/custom', {
+  const res = await fetch("https://<ENVIRONMENT_API_URL>/acquiring/v1/payment/initiate", {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${tokenData.access_token}`,
       "content-type": "application/json",
     },
     body: JSON.stringify({
-      "amount": amount ?? "1.1",
-      "walletId": "<MERCHANTWALLETID>",
-      "currency": currency ?? "EUR",
       "paymentSessionId": paymentSessionId,
-      "reason": reason ?? "Test Payment Card 01"
+      "amount": amount ?? "1.23",
+      "currency": currency ?? "EUR",
+      "walletId": "<WALLET_ID>",
+      "reason": reason ?? "Initiate payment 01",
+      "provider": provider,
+      "paymentSessionRequest": {
+        "amount": amount ?? "1.23",
+        "reason": reason ?? "Initiate payment 01",
+        "destinationWalletId": "<WALLET_ID>",
+        "transactionCurrency": currency ?? "EUR",
+      }
     }),
   });
 
   const data = await res.json();
 
   return {
-    "clientSecret": data.clientSecret,
-    "paymentId": data.paymentIntentId,
+    "amount": data.amount,
     "currency": data.currency,
+    "reason": data.reason,
+    "clientSecret": data.clientSecret,
+    "stripePaymentIntentId": data.paymentIntentId,
+    "feeAmount": data.feeAmount,
+    "otp": data.provider.otp,
+    "offersSessionId": data.provider.paymentOfferSessionId,
+    "paymentShortReference": data.provider.shortReference,
   };
 }
+
+// UPDATE PAYMENT
+const updatePayment = async (paymentSessionId, paymentStatus) => {
+  const tokenData = await getTokenData();
+
+  return await fetch("https://<ENVIRONMENT_API_URL>/acquiring/v1/payment/${paymentSessionId}/status/${paymentStatus}", {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${tokenData.access_token}`,
+      "content-type": "application/json",
+    }
+  });
+}
+
+/**
+ * PAYMENT BY CARD CALLBACKS
+ */
 
 const approveCardPayment = async (paymentId, currency) => {
   const tokenData = await getTokenData();
@@ -258,9 +287,11 @@ const renderStreamWithToonieButton = true;
 const renderPayWithCardButton = true;
 
 const options = {
-  getPaymentData,
+  getTokenData,
+  createPaymentSession,
   fetchPaymentDataBySessionId,
-  createCardPaymentIntent,
+  initiatePayment,
+  updatePayment,
   approveCardPayment,
   createStreamPaymentIntent,
   approveStreamPayment,
