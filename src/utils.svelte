@@ -14,15 +14,15 @@
       return true;
     }
 
-    // options.getPaymentData is required
-    if (!options.getPaymentData) {
-      console.warn("getPaymentData is required");
+    // options.createPaymentSession is required
+    if (!options.createPaymentSession) {
+      console.warn("createPaymentSession is required");
       return true;
     }
 
-    // options.getPaymentData should be a function type
-    if (typeof options.getPaymentData !== "function") {
-      console.warn("getPaymentData must be a function");
+    // options.createPaymentSession should be a function type
+    if (typeof options.createPaymentSession !== "function") {
+      console.warn("createPaymentSession must be a function");
       return true;
     }
 
