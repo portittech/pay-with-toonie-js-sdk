@@ -198,12 +198,12 @@
     }
 
     &__content {
-      background-color: var(--toonie-main-white);
+      background-color: var(--main-white-color);
       border-radius: 30px;
       box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
       background-clip: padding-box;
       padding: 3rem 2rem 1rem;
-      font-family: 'Comfortaa', cursive;
+      font-family: var(--font-family);
       position: relative;
       min-width: 240px;
     }
@@ -236,7 +236,7 @@
       color: var(--toonie-primary-color);
 
       &--error {
-        color: var(--toonie-error-color);
+        color: var(--error-color);
       }
 
       font-size: 1.2rem;
@@ -301,7 +301,7 @@
       margin-top: 1rem;
       padding: 0.5rem 2rem;
       cursor: pointer;
-      color: var(--toonie-main-white);
+      color: var(--main-white-color);
     }
   }
 </style>
