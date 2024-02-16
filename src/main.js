@@ -1,9 +1,9 @@
 import App from "./App.svelte";
 import {
-  optionsStore,
-  pollingStore,
   forcePollingStop,
+  optionsStore,
   paymentErrorsStore,
+  pollingStore,
 } from "./store";
 import { get } from "svelte/store";
 import * as Sentry from "@sentry/svelte";

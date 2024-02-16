@@ -62,8 +62,9 @@ export default {
       "process.env.PUBLIC_STRIPE_KEY": JSON.stringify(
         process.env.PUBLIC_STRIPE_KEY
       ),
-      "process.env.SECRET_STRIPE_KEY": JSON.stringify(
-        process.env.SECRET_STRIPE_KEY
+      // TODO: create a prod env where to store the live key
+      "process.env.PUBLIC_STRIPE_KEY_LVE": JSON.stringify(
+        process.env.PUBLIC_STRIPE_KEY_LVE
       ),
       preventAssignment: true,
     }),
