@@ -5,13 +5,14 @@
   const POLL_INTERVAL = 5000
   const MAX_ATTEMPTS = 10
 
-  const poll = async ({ interval, maxAttempts, paymentData, paymentType, successUrl, errorUrl, sessionId }) => {
+  const poll = async ({interval, maxAttempts, paymentData, paymentType, successUrl, errorUrl, sessionId}) => {
     const options = get(optionsStore)
     const baseUrl = options?.baseUrl ?? 'https://api.toonieglobal.com'
-    const checkPaymentStatusEndpoint = `${baseUrl}/acquiring/v1/payment/approve/`
+    const checkPaymentStatusEndpoint = `${baseUrl}/acquiring/v1/payment/${sessionId}/approve/`
 
     let attempts = 0
 
+    //  TODO: remove auth from this endpoint
     const tokenData = await options.getTokenData();
 
     const getPaymentStatusData = async () => {
@@ -21,11 +22,7 @@
           headers: {
             Authorization: `Bearer ${tokenData.access_token}`,
             "content-type": "application/json",
-          },
-          body: JSON.stringify({
-            "paymentSessionId": sessionId,
-            "provider": "TOONIE"
-          })
+          }
         })
 
         if (res.ok) {

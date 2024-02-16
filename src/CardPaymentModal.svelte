@@ -1,15 +1,16 @@
 <script>
-  import { CardCvc, CardExpiry, CardNumber, Elements } from "svelte-stripe";
-  import { get } from "svelte/store";
-  import { optionsStore } from "./store.js";
+    import {CardCvc, CardExpiry, CardNumber, Elements} from "svelte-stripe";
+    import {get} from "svelte/store";
+    import {optionsStore} from "./store.js";
 
-  export let cardModalVisible
+    export let cardModalVisible
   export let loadDataError
   export let stripe
   export let paymentData
   export let closeModal
   export let successUrl
   export let errorUrl
+  export let sessionId
 
   let isPaymentProcessing = false
   let isPaymentSuccess = false;
@@ -40,23 +41,23 @@
       // payment succeeded, redirect to "thank you" page and approve payment on backend
       const options = get(optionsStore)
 
-      try {
-        await options.approveCardPayment(paymentData.stripePaymentIntentId, paymentData.currency);
+        const res = await options.approveCardPayment(sessionId);
 
-        isPaymentSuccess = true;
+        if (res.status !== 200) {
+            paymentError = res.statusText;
+            isPaymentSuccess = false;
 
-        if (successUrl) {
-          location.href = successUrl
+            if (errorUrl) {
+                location.href = errorUrl
+            }
+            console.error("There was an error during the payment", res.statusText)
+        } else {
+            isPaymentSuccess = true;
+
+            if (successUrl) {
+                location.href = successUrl
+            }
         }
-      } catch (err) {
-        paymentError = err;
-        isPaymentSuccess = false;
-
-        if (errorUrl) {
-          location.href = errorUrl
-        }
-        console.error("There was an error during the payment", err)
-      }
     }
 
     isPaymentProcessing = false;
@@ -125,7 +126,7 @@
                     <div class="card-modal__title">Pay with Card</div>
                     {#if paymentError}
                         <div class="card-modal__message card-modal__message--error">
-                            {paymentError.message}
+                            {paymentError.message ?? paymentError}
                         </div>
                     {/if}
                     <Elements {stripe}>
