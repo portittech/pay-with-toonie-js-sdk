@@ -1,16 +1,18 @@
 <script>
-    import {CardCvc, CardExpiry, CardNumber, Elements} from "svelte-stripe";
-    import {get} from "svelte/store";
-    import {optionsStore} from "./store.js";
+  import { CardCvc, CardExpiry, CardNumber, Elements } from "svelte-stripe";
+  import { get } from "svelte/store";
+  import { optionsStore } from "./store.js";
 
-    export let cardModalVisible
+  export let cardModalVisible
   export let loadDataError
   export let stripe
   export let paymentData
-  export let closeModal
+  export let onCloseModal
   export let successUrl
   export let errorUrl
   export let sessionId
+
+  const redirectDelayTimeMs = 2500;
 
   let isPaymentProcessing = false
   let isPaymentSuccess = false;
@@ -48,14 +50,14 @@
             isPaymentSuccess = false;
 
             if (errorUrl) {
-                location.href = errorUrl
+              setTimeout(() => location.href = errorUrl, redirectDelayTimeMs)
             }
             console.error("There was an error during the payment", res.statusText)
         } else {
             isPaymentSuccess = true;
 
             if (successUrl) {
-                location.href = successUrl
+              setTimeout(() => location.href = successUrl, redirectDelayTimeMs)
             }
         }
     }
@@ -67,7 +69,7 @@
 <div>
     <div class="card-modal {cardModalVisible ? 'card-modal--visible' : ''}">
         <div class="card-modal__content">
-            <div on:click={closeModal} class="card-modal__close-icon">X</div>
+            <div on:click={onCloseModal} class="card-modal__close-icon">X</div>
             {#if cardModalVisible}
                 {#if loadDataError}
                     <div class="card-modal__body">
@@ -93,7 +95,7 @@
                         <div class="card-modal__message">
                             There was an issue with loading data for this payment
                         </div>
-                        <button on:click={closeModal} class="card-modal__btn">Close</button>
+                        <button on:click={onCloseModal} class="card-modal__btn">Close</button>
                     </div>
 
                 {:else if !stripe}
@@ -119,8 +121,8 @@
                                 />
                             </svg>
                         </div>
-                        <div class="card-modal__message">Payment was successful!</div>
-                        <button on:click={closeModal} class="card-modal__btn">Close</button>
+                        <div class="card-modal__message">Payment was successful! Redirecting...</div>
+                        <button on:click={onCloseModal} class="card-modal__btn">Close</button>
                     </div>
                 {:else}
                     <div class="card-modal__title">Pay with Card</div>
