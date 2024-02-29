@@ -36,6 +36,7 @@
     "svelte-stripe": "^0.0.22"
   },
   "dependencies": {
+    "@sentry/svelte": "^7.103.0",
     "@stripe/stripe-js": "^2.1.1",
     "sirv-cli": "^2.0.0",
     "svelte-qrcode": "^1.0.0"
