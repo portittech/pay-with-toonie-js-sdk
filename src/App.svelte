@@ -36,6 +36,8 @@
   let streamModalVisible = false
   let streamPaymentData
 
+  let isPaymentAlreadyCompleted = false
+
   onMount(async () => {
     stripe = await loadStripe(PUBLIC_STRIPE_KEY);
 
@@ -46,6 +48,9 @@
 
       try {
         paymentDataBySessionId = await options.fetchPaymentDataBySessionId(paymentSessionId)
+
+        // if a user come back to the same page after the payment, it should not see any info of the last payment
+        if (paymentDataBySessionId.status === "SUCCEEDED" || paymentDataBySessionId.status === "APPROVED") isPaymentAlreadyCompleted = true;
       } catch (e) {
         options.failurePaymentCallback(e)
         loadDataError = true
@@ -60,7 +65,7 @@
   }
 
   const formatAmountToDisplay = (amount, currency) => {
-    if (!(amount && currency)) return undefined;
+    if (!(amount && currency)) return "---";
 
     return new Intl.NumberFormat('it-IT', {
       style: "currency",
@@ -180,23 +185,22 @@
     <div class="card">
       <!-- TODO: Show the user merchant name initials as the icon when it will be returned by the API -->
       <div class="icon">--</div>
-      <h1
-              class="title">{formatAmountToDisplay(paymentDataBySessionId?.amount, paymentDataBySessionId?.currency) ?? "---"}</h1>
+      <h1 class="title">{isPaymentAlreadyCompleted ? "---" : formatAmountToDisplay(paymentDataBySessionId?.amount, paymentDataBySessionId?.currency)}</h1>
       <h3 class="subtitle">Total cart</h3>
       <div class="row">
         <p class="label">Reason:</p>
-        <p class="value">{paymentDataBySessionId?.reason ?? "---"}</p>
+        <p class="value">{isPaymentAlreadyCompleted ? "---" : paymentDataBySessionId?.reason}</p>
       </div>
       <div class="row">
         <p class="label">Checkout Total:</p>
         <p class="value">
-          {formatAmountToDisplay(paymentDataBySessionId?.amount, paymentDataBySessionId?.currency) ?? "---"}
+          {isPaymentAlreadyCompleted ? "---" : formatAmountToDisplay(paymentDataBySessionId?.amount, paymentDataBySessionId?.currency)}
         </p>
       </div>
     </div>
-    <!--        <div class="card">-->
     <!-- TODO: will be implemented another card with info about cashback -->
-    <!--        </div>-->
+    <!-- <div class="card"> -->
+    <!-- </div> -->
   </div>
 
   <div class="right-side">
@@ -247,7 +251,7 @@
         <h2 class="subtitle">Choose your payment method</h2>
 
         {#if options.renderPayWithToonieButton}
-          <button on:click={() => onPaymentButtonClick("pwt")} class="primary-btn">
+          <button on:click={() => onPaymentButtonClick("pwt")} class:disabled={isPaymentAlreadyCompleted} class="primary-btn">
             <span class="primary-btn__text">Pay with</span>
             <svg
                     width="92"
@@ -297,7 +301,7 @@
         {/if}
 
         {#if options.renderStreamWithToonieButton}
-          <button on:click={() => onPaymentButtonClick("stream")} class="primary-btn">
+          <button on:click={() => onPaymentButtonClick("stream")} class:disabled={isPaymentAlreadyCompleted} class="primary-btn">
             <span class="primary-btn__text">Stream with</span>
             <svg
                     width="92"
@@ -346,7 +350,7 @@
 
         {#if stripe && options.renderPayWithCardButton}
           <Elements {stripe}>
-            <button on:click={() => onPaymentButtonClick("card")} class="primary-btn primary-btn--card">
+            <button on:click={() => onPaymentButtonClick("card")} class:disabled={isPaymentAlreadyCompleted} class="primary-btn primary-btn--card">
               <span class="primary-btn__text">Pay with card</span>
             </button>
             {#if cardModalVisible}
@@ -420,6 +424,11 @@
     --secondary-white-color: #F5F5F5;
     --error-color: #b22929;
     --font-family: 'Comfortaa', sans-serif;
+  }
+
+  .disabled {
+    opacity: 0.5;
+    pointer-events: none;
   }
 
   .primary-btn {

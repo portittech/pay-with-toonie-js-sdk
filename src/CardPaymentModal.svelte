@@ -45,20 +45,20 @@
 
         const res = await options.approveCardPayment(sessionId);
 
-        if (res.status !== 200) {
-            paymentError = res.statusText;
-            isPaymentSuccess = false;
+        if (res.ok) {
+          isPaymentSuccess = true;
 
-            if (errorUrl) {
-              setTimeout(() => location.href = errorUrl, redirectDelayTimeMs)
-            }
-            console.error("There was an error during the payment", res.statusText)
+          if (successUrl) {
+            setTimeout(() => location.href = successUrl, redirectDelayTimeMs)
+          }
         } else {
-            isPaymentSuccess = true;
+          paymentError = res.statusText;
+          isPaymentSuccess = false;
 
-            if (successUrl) {
-              setTimeout(() => location.href = successUrl, redirectDelayTimeMs)
-            }
+          if (errorUrl) {
+            setTimeout(() => location.href = errorUrl, redirectDelayTimeMs)
+          }
+          console.error("There was an error during the payment", res.status, res.statusText)
         }
     }
 
@@ -128,7 +128,7 @@
                     <div class="card-modal__title">Pay with Card</div>
                     {#if paymentError}
                         <div class="card-modal__message card-modal__message--error">
-                            {paymentError.message ?? paymentError}
+                            {paymentError.message ?? "There was an error during the payment"}
                         </div>
                     {/if}
                     <Elements {stripe}>

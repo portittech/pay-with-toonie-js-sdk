@@ -4,6 +4,7 @@
 
   const POLL_INTERVAL = 5000
   const MAX_ATTEMPTS = 10
+  const REDIRECT_DELAY = 2500;
 
   const poll = async ({interval, maxAttempts, paymentData, paymentType, successUrl, errorUrl, sessionId}) => {
     const options = get(optionsStore)
@@ -12,15 +13,11 @@
 
     let attempts = 0
 
-    //  TODO: remove auth from this endpoint
-    const tokenData = await options.getTokenData();
-
     const getPaymentStatusData = async () => {
       try {
         const res = await fetch(checkPaymentStatusEndpoint, {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${tokenData.access_token}`,
             "content-type": "application/json",
           }
         })
@@ -41,6 +38,18 @@
       const paymentStatus = await getPaymentStatusData()
       attempts++
 
+      const handleError = () => {
+        // Show to user error message
+        paymentErrorsStore.set({
+          paymentStatus,
+          attempts
+        })
+
+        setTimeout(() => location.href = errorUrl, REDIRECT_DELAY)
+
+        return reject(new Error('Payment was rejected'))
+      }
+
       if (paymentStatus.provider.status === 'APPROVED') {
         // update payment for BE and show to user success message
         if (options.updatePayment) {
@@ -53,7 +62,7 @@
         paymentErrorsStore.set(undefined)
 
         if (successUrl) {
-          location.href = successUrl
+          setTimeout(() => location.href = successUrl, REDIRECT_DELAY)
         }
 
         return resolve(paymentStatus)
@@ -63,24 +72,10 @@
           await options.updatePayment(sessionId, paymentStatus.provider.status)
         }
 
-        // Show to user error message
-        paymentErrorsStore.set({
-          paymentStatus,
-          attempts
-        })
-        return reject(new Error('Payment was rejected'))
+        handleError();
+
       } else if (maxAttempts && attempts === maxAttempts) {
-        // Show to user error message
-        paymentErrorsStore.set({
-          paymentStatus,
-          attempts
-        })
-
-        if (errorUrl) {
-          location.href = errorUrl
-        }
-
-        return reject(new Error('Exceeded max attempts'))
+        handleError()
       } else {
         // continue polling
         const isForcedFromOutside = get(forcePollingStop);
@@ -111,6 +106,18 @@
       const paymentStatus = await streamPaymentIntentRequest();
       attempts++
 
+      const handleError = () => {
+        // Show to user error message
+        paymentErrorsStore.set({
+          paymentStatus,
+          attempts
+        })
+
+        setTimeout(() => location.href = errorUrl, REDIRECT_DELAY)
+
+        return reject(new Error('Payment was rejected'))
+      }
+
       if (paymentStatus.status === 'ACCEPTED') {
         // Show to user success message
         if (options.successPaymentCallback) {
@@ -124,28 +131,13 @@
 
         return resolve(paymentStatus)
       } else if (paymentStatus.status === 'REJECTED') {
-        // Show to user error message
         if (options.failurePaymentCallback) {
           options.failurePaymentCallback(paymentStatus, paymentData)
         }
 
-        paymentErrorsStore.set({
-          paymentStatus,
-          attempts
-        })
-
-        if (errorUrl) {
-          location.href = errorUrl
-        }
-
-        return reject(new Error('Payment was rejected'))
+        handleError()
       } else if (maxAttempts && attempts === maxAttempts) {
-        // Show to user error message
-        paymentErrorsStore.set({
-          paymentStatus,
-          attempts
-        })
-        return reject(new Error('Exceeded max attempts'))
+        handleError()
       } else {
         // continue polling
         const isForcedFromOutside = get(forcePollingStop);
