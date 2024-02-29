@@ -6,7 +6,7 @@
   export let loadDataError
   export let streamPaymentData
   export let qrCodeValue
-  export let closeModal
+  export let onCloseModal
   export let successUrl
   export let errorUrl
 </script>
@@ -14,7 +14,7 @@
 <div>
   <div class="pwt-modal {streamModalVisible ? 'pwt-modal--visible' : ''}">
     <div class="pwt-modal__content">
-      <div on:click={closeModal} class="pwt-modal__close-icon">X</div>
+      <div on:click={onCloseModal} class="pwt-modal__close-icon">X</div>
       {#if streamModalVisible}
         {#if loadDataError}
           <div class="pwt-modal__body">
@@ -40,7 +40,7 @@
             <div class="pwt-modal__message">
               There was an issue with loading data for this payment
             </div>
-            <button on:click={closeModal} class="pwt-modal__btn">Close</button>
+            <button on:click={onCloseModal} class="pwt-modal__btn">Close</button>
           </div>
         {/if}
         {#if !loadDataError && !qrCodeValue}
@@ -76,7 +76,7 @@
                 </svg>
               </div>
               <div class="pwt-modal__message">Payment was successful!</div>
-              <button on:click={closeModal} class="pwt-modal__btn">Close</button
+              <button on:click={onCloseModal} class="pwt-modal__btn">Close</button
               >
             </div>
           {:catch error}
@@ -115,7 +115,7 @@
                 </svg>
               </div>
               <div class="pwt-modal__message">{error.message}</div>
-              <button on:click={closeModal} class="pwt-modal__btn">
+              <button on:click={onCloseModal} class="pwt-modal__btn">
                 Close
               </button>
             </div>
