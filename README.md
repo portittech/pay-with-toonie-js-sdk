@@ -6,15 +6,15 @@ Further official integration documentation can be found [here](https://github.co
 
 ### Environment variables
 
-This project is using variables from a `.env` file, you can see the list on the `rollup.config.js` file.
+This project is using variables from a `.env` file.
 
-You must create a `.env` file in the root of the project and give a value to the variables you need to use.
+You must create a `.env` file in the root of the project and give a value to the variables you need to use. 
+You can see the list of values to add in you env file on the [rollup.config.js](./rollup.config.js) file.
 
 If you need to add new environment values on the `.env` file, remember to add them on the `rollup.config.js` file too,
 to make them available around the code.
 
-Environment variables, when declared correctly, can be accessed in this way `process.env.<VARIABLE_NAME>` using the
-Node.js `process` object.
+Environment variables, when declared correctly, can be accessed in this way `process.env.<VARIABLE_NAME>` using the Node.js `process` object.
 
 ### Usage
 

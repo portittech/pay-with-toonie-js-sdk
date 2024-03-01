@@ -58,14 +58,10 @@ export default {
 
     replace({
       // Replace .env variables with the actual value
-
       "process.env.PUBLIC_STRIPE_KEY": JSON.stringify(
         process.env.PUBLIC_STRIPE_KEY
       ),
-      // TODO: create a prod env where to store the live key
-      "process.env.PUBLIC_STRIPE_KEY_LVE": JSON.stringify(
-        process.env.PUBLIC_STRIPE_KEY_LVE
-      ),
+      "process.env.ENVIRONMENT": JSON.stringify(process.env.ENVIRONMENT),
       preventAssignment: true,
     }),
 

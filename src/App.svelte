@@ -13,10 +13,9 @@
 
   const options = get(optionsStore)
   const paymentSessionIdUrlKey = "orderId"
+  const toonieRedirectUrl = "https://www.toonieglobal.com/"
 
-  // TODO: create a prod env where to store the live key
   const PUBLIC_STRIPE_KEY = process.env.PUBLIC_STRIPE_KEY
-  const PUBLIC_STRIPE_KEY_LIVE = process.env.PUBLIC_STRIPE_KEY_LVE
 
   const version = readable(packageJson.version);
 
@@ -49,14 +48,15 @@
       try {
         paymentDataBySessionId = await options.fetchPaymentDataBySessionId(paymentSessionId)
 
-        // if a user come back to the same page after the payment, it should not see any info of the last payment
+        // TODO: change this into a "content not allowed" like page
+        //  if a user come back to the same page after the payment, it should not see any info of the last payment
         if (paymentDataBySessionId.status === "SUCCEEDED" || paymentDataBySessionId.status === "APPROVED") isPaymentAlreadyCompleted = true;
       } catch (e) {
         options.failurePaymentCallback(e)
         loadDataError = true
         console.warn('There was an issue with loading data for this payment')
       }
-    } else window.location.href = "https://www.toonieglobal.com/"
+    } else window.location.href = toonieRedirectUrl
   })
 
   const getProviderNameFromPaymentType = (paymentType) => {
