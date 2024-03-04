@@ -1,0 +1,106 @@
+name: Pay With Toonie SDK Continuous Deployment
+run-name: Pay With Toonie SDK Continuous Deployment
+on:
+  push:
+    branches:
+      - release/dev/**
+      - release/demo/**
+      - release/prod/**
+
+jobs:
+  deploy:
+    name: Checkout, Set up Node, Generate env file, Build, Upload and Download artifact
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16.x'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # DEV
+      - name: Generate DEV env file
+        if: contains(github.ref_name, '/dev')
+        run: |
+          echo "${{ secrets.ENV_FILE_DEV }}" > ./.env
+
+      - name: Build
+        if: contains(github.ref_name, '/dev')
+        run: npm run build
+
+      - name: Upload artifact
+        if: contains(github.ref_name, '/dev')
+        uses: actions/upload-artifact@v4
+        with:
+          name: pwt-sdk-dev
+          path: dist/
+
+      - name: Download artifact
+        if: contains(github.ref_name, '/dev')
+        uses: actions/download-artifact@v4
+        with:
+          name: pwt-sdk-dev
+
+      - name: Display structure of downloaded files
+        if: contains(github.ref_name, '/dev')
+        run: ls -R
+
+      # DEMO
+      - name: Generate DEMO env file
+        if: contains(github.ref_name, '/demo')
+        run: |
+          echo "${{ secrets.ENV_FILE_DEMO }}" > ./.env
+
+      - name: Build
+        if: contains(github.ref_name, '/demo')
+        run: npm run build
+
+      - name: Upload artifact
+        if: contains(github.ref_name, '/demo')
+        uses: actions/upload-artifact@v4
+        with:
+          name: pwt-sdk-demo
+          path: dist/
+
+      - name: Download artifact
+        if: contains(github.ref_name, '/demo')
+        uses: actions/download-artifact@v4
+        with:
+          name: pwt-sdk-demo
+
+      - name: Display structure of downloaded files
+        if: contains(github.ref_name, '/demo')
+        run: ls -R
+
+      # PROD
+      - name: Generate PROD env file
+        if: contains(github.ref_name, '/prod')
+        run: |
+          echo "${{ secrets.ENV_FILE_PROD }}" > ./.env
+
+      - name: Build
+        if: contains(github.ref_name, '/prod')
+        run: npm run build
+
+      - name: Upload artifact
+        if: contains(github.ref_name, '/prod')
+        uses: actions/upload-artifact@v4
+        with:
+          name: pwt-sdk-prod
+          path: dist/
+
+      - name: Download artifact
+        if: contains(github.ref_name, '/prod')
+        uses: actions/download-artifact@v4
+        with:
+          name: pwt-sdk-prod
+
+      - name: Display structure of downloaded files
+        if: contains(github.ref_name, '/prod')
+        run: ls -R
