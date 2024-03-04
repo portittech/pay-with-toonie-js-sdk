@@ -495,6 +495,12 @@
     text-align: center;
   }
 
+  .subtitle {
+    color: var(--toonie-primary-color);
+    font-weight: bold;
+    margin-top: 0;
+  }
+
   .left-side {
     width: 50%;
     background-color: var(--secondary-white-color);
@@ -519,12 +525,6 @@
         font-size: 2rem;
         font-weight: bold;
         margin-bottom: 0.6rem;
-      }
-
-      .subtitle {
-        font-size: 1.25rem;
-        font-weight: bold;
-        margin-top: 0;
       }
 
       .icon {
@@ -584,6 +584,7 @@
   }
 
   .right-side-content {
+    z-index: 999;
     height: 100%;
     display: flex;
     flex-direction: column;

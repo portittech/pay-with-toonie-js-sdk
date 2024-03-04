@@ -9,7 +9,7 @@
   const poll = async ({interval, maxAttempts, paymentData, paymentType, successUrl, errorUrl, sessionId}) => {
     const options = get(optionsStore)
     const baseUrl = options?.baseUrl ?? 'https://api.toonieglobal.com'
-    const checkPaymentStatusEndpoint = `${baseUrl}/acquiring/v1/payment/${sessionId}/approve/`
+    const checkPaymentStatusEndpoint = `${baseUrl}/acquiring/v1/payment/${sessionId}/approve`
 
     let attempts = 0
 
