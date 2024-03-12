@@ -35,7 +35,7 @@
   let streamModalVisible = false
   let streamPaymentData
 
-  let isPaymentAlreadyCompleted = false
+  let showPaymentInfos = false
 
   onMount(async () => {
     stripe = await loadStripe(PUBLIC_STRIPE_KEY);
@@ -50,7 +50,9 @@
 
         // TODO: change this into a "content not allowed" like page
         //  if a user come back to the same page after the payment, it should not see any info of the last payment
-        if (paymentDataBySessionId.status === "SUCCEEDED" || paymentDataBySessionId.status === "APPROVED") isPaymentAlreadyCompleted = true;
+        if (!paymentDataBySessionId.paymentSessionId || paymentDataBySessionId.status === "SUCCEEDED" || paymentDataBySessionId.status === "APPROVED") {
+          showPaymentInfos = true;
+        }
       } catch (e) {
         options.failurePaymentCallback(e)
         loadDataError = true
@@ -185,16 +187,16 @@
     <div class="card">
       <!-- TODO: Show the user merchant name initials as the icon when it will be returned by the API -->
       <div class="icon">--</div>
-      <h1 class="title">{isPaymentAlreadyCompleted ? "---" : formatAmountToDisplay(paymentDataBySessionId?.amount, paymentDataBySessionId?.currency)}</h1>
+      <h1 class="title">{showPaymentInfos ? "---" : formatAmountToDisplay(paymentDataBySessionId?.amount, paymentDataBySessionId?.currency)}</h1>
       <h3 class="subtitle">Total cart</h3>
       <div class="row">
         <p class="label">Reason:</p>
-        <p class="value">{isPaymentAlreadyCompleted ? "---" : paymentDataBySessionId?.reason}</p>
+        <p class="value">{showPaymentInfos ? "---" : paymentDataBySessionId?.reason}</p>
       </div>
       <div class="row">
         <p class="label">Checkout Total:</p>
         <p class="value">
-          {isPaymentAlreadyCompleted ? "---" : formatAmountToDisplay(paymentDataBySessionId?.amount, paymentDataBySessionId?.currency)}
+          {showPaymentInfos ? "---" : formatAmountToDisplay(paymentDataBySessionId?.amount, paymentDataBySessionId?.currency)}
         </p>
       </div>
     </div>
@@ -247,11 +249,28 @@
                 fill="#F4B31D"/>
       </svg>
 
-      <div class="right-side-content" style="margin-bottom: 120px">
+      <div class="card card-mobile">
+        <!-- TODO: Show the user merchant name initials as the icon when it will be returned by the API -->
+        <div class="icon">--</div>
+        <h1 class="title">{showPaymentInfos ? "---" : formatAmountToDisplay(paymentDataBySessionId?.amount, paymentDataBySessionId?.currency)}</h1>
+        <h3 class="subtitle">Total cart</h3>
+        <div class="row">
+          <p class="label">Reason:</p>
+          <p class="value">{showPaymentInfos ? "---" : paymentDataBySessionId?.reason}</p>
+        </div>
+        <div class="row">
+          <p class="label">Checkout Total:</p>
+          <p class="value">
+            {showPaymentInfos ? "---" : formatAmountToDisplay(paymentDataBySessionId?.amount, paymentDataBySessionId?.currency)}
+          </p>
+        </div>
+      </div>
+
+      <div class="column-center">
         <h2 class="subtitle">Choose your payment method</h2>
 
         {#if options.renderPayWithToonieButton}
-          <button on:click={() => onPaymentButtonClick("pwt")} class:disabled={isPaymentAlreadyCompleted} class="primary-btn">
+          <button on:click={() => onPaymentButtonClick("pwt")} class:disabled={showPaymentInfos} class="primary-btn">
             <span class="primary-btn__text">Pay with</span>
             <svg
                     width="92"
@@ -301,7 +320,7 @@
         {/if}
 
         {#if options.renderStreamWithToonieButton}
-          <button on:click={() => onPaymentButtonClick("stream")} class:disabled={isPaymentAlreadyCompleted} class="primary-btn">
+          <button on:click={() => onPaymentButtonClick("stream")} class:disabled={showPaymentInfos} class="primary-btn">
             <span class="primary-btn__text">Stream with</span>
             <svg
                     width="92"
@@ -350,7 +369,7 @@
 
         {#if stripe && options.renderPayWithCardButton}
           <Elements {stripe}>
-            <button on:click={() => onPaymentButtonClick("card")} class:disabled={isPaymentAlreadyCompleted} class="primary-btn primary-btn--card">
+            <button on:click={() => onPaymentButtonClick("card")} class:disabled={showPaymentInfos} class="primary-btn primary-btn--card">
               <span class="primary-btn__text">Pay with card</span>
             </button>
             {#if cardModalVisible}
@@ -368,9 +387,11 @@
           </Elements>
         {/if}
       </div>
+
       <div class="footer">
-        <span>Powered by</span>
-        <svg
+        <div class="footer-row">
+          <span>Powered by</span>
+          <svg
                 fill="none"
                 height="27"
                 viewBox="0 0 92 27"
@@ -402,10 +423,12 @@
                   fill="#F4B31D"
           />
         </svg>
+        </div>
+        <div class="footer-row">
+          <span style="margin-top: 10px">Version: {$version}</span>
+        </div>
       </div>
-      <div class="footer" style="margin-top: 10px">
-        <span>Version: {$version}</span>
-      </div>
+
     </div>
   </div>
 </div>
@@ -483,6 +506,10 @@
     display: flex;
     height: 100%;
     width: 100%;
+
+    @media only screen and (max-width: 780px) {
+     overflow: scroll;
+    }
   }
 
   .left-side, .right-side {
@@ -506,69 +533,14 @@
     background-color: var(--secondary-white-color);
     color: var(--main-white-color);
 
-    .card {
-      width: 20rem;
-      min-height: 16rem;
-      background-color: var(--main-white-color);
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      color: var(--toonie-primary-color);
-      position: relative;
-      margin-bottom: 1rem;
-
-      p {
-        margin: 0;
-      }
-
-      .title {
-        font-size: 2rem;
-        font-weight: bold;
-        margin-bottom: 0.6rem;
-      }
-
-      .icon {
-        position: absolute;
-        top: -32px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 3.6rem;
-        height: 3.6rem;
-        background-color: var(--toonie-secondary-color);
-        color: var(--main-white-color);
-        border-radius: 50%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-size: 1.2rem;
-        font-weight: bold;
-      }
-
-      .row {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        gap: 1rem;
-        align-items: center;
-        padding: 0.8rem 1rem;
-
-        .label {
-          font-size: 1rem;
-          text-align: start;
-        }
-
-        .value {
-          font-size: 1.125rem;
-          font-weight: 600;
-          text-align: end;
-        }
-      }
-    }
-
     .position-top-left {
       position: absolute;
       top: 0;
       left: 0;
+    }
+    
+    @media only screen and (max-width: 780px) {
+      display: none;
     }
   }
 
@@ -581,6 +553,10 @@
       bottom: 0;
       right: 0;
     }
+
+    @media only screen and (max-width: 780px) {
+      width: 100%;
+    }
   }
 
   .right-side-content {
@@ -590,6 +566,118 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    margin-bottom: 4rem;
+
+    @media only screen and (max-width: 780px) {
+      margin-bottom: 0;
+      gap: 3rem
+    }
+  }
+
+  .column-center {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    @media only screen and (max-width: 780px) {
+      flex: 2;
+    }
+  }
+
+  .card {
+    width: 20rem;
+    min-height: 16rem;
+    background-color: var(--main-white-color);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    color: var(--toonie-primary-color);
+    position: relative;
+    margin-bottom: 1rem;
+
+    p {
+      margin: 0;
+    }
+
+    .title {
+      font-size: 2rem;
+      font-weight: bold;
+      margin-bottom: 0.6rem;
+    }
+
+    .icon {
+      position: absolute;
+      top: -32px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 3.6rem;
+      height: 3.6rem;
+      background-color: var(--toonie-secondary-color);
+      color: var(--main-white-color);
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+
+    .row {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: center;
+      padding: 0.8rem 1rem;
+
+      .label {
+        font-size: 1rem;
+        text-align: start;
+      }
+
+      .value {
+        font-size: 1.125rem;
+        font-weight: 600;
+        text-align: end;
+      }
+    }
+  }
+
+  .card-mobile {
+    display: none;
+
+    @media only screen and (max-width: 780px) {
+      display: block;
+      flex: 2;
+      width: 18rem;
+      min-height: 10rem;
+      max-height: 12rem;
+      padding: 1rem;
+
+      .icon {
+        width: 3rem;
+        height: 3rem;
+        font-size: 1rem;
+      }
+
+      .title {
+        font-size: 1.5rem;
+      }
+
+      .subtitle {
+        font-size: 1rem;
+      }
+
+      .row {
+        padding: 0.4rem 1rem;
+
+        .value {
+          font-size: 1rem;
+        }
+      }
+    }
   }
 
   .footer {
@@ -597,16 +685,19 @@
     color: var(--toonie-light-grey-color);
     font-size: 0.8rem;
     display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
     align-items: center;
     justify-content: center;
+
+    .footer-row {
+      display: flex;
+      align-items: center;
+    }
 
     svg {
       height: 15px;
       width: 70px;
-    }
-
-    span {
-      padding-top: 3px;
     }
   }
 
@@ -615,5 +706,11 @@
     justify-content: center;
     align-items: center;
     margin-top: 3rem;
+
+    @media only screen and (max-width: 780px) {
+      margin-top: 0;
+      flex: 1;
+      min-height: 3rem;
+    }
   }
 </style>
