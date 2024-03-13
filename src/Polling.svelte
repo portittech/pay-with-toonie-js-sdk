@@ -36,6 +36,7 @@
 
     const executePoll = async (resolve, reject) => {
       const paymentStatus = await getPaymentStatusData()
+      const provider = paymentStatus?.provider;
       attempts++
 
       const handleError = () => {
@@ -50,41 +51,40 @@
         return reject(new Error('Payment was rejected'))
       }
 
-      if (paymentStatus.provider.status === 'APPROVED') {
-        // update payment for BE and show to user success message
-        if (options.updatePayment) {
-          await options.updatePayment(sessionId, paymentStatus.provider.status)
+      if (provider) {
+        if (provider.status === 'APPROVED') {
+          // update payment for BE and show to user success message
+          if (options.updatePayment) {
+            await options.updatePayment(sessionId, provider.status)
+          }
+
+          if (options.successPaymentCallback) {
+            options.successPaymentCallback(paymentStatus, paymentData)
+          }
+          paymentErrorsStore.set(undefined)
+
+          if (successUrl) {
+            setTimeout(() => location.href = successUrl, REDIRECT_DELAY)
+          }
+
+          return resolve(paymentStatus)
+        } else if (provider.status === 'REJECTED') {
+          // update payment for BE
+          if (options.updatePayment) {
+            await options.updatePayment(sessionId, provider.status)
+          }
+          handleError();
+        } else if (maxAttempts && attempts === maxAttempts) {
+          handleError()
+        } else {
+          // continue polling
+          const isForcedFromOutside = get(forcePollingStop);
+          if (!isForcedFromOutside) {
+            const timeoutId = setTimeout(executePoll, interval, resolve, reject);
+            pollingStore.set(timeoutId)
+          }
         }
-
-        if (options.successPaymentCallback) {
-          options.successPaymentCallback(paymentStatus, paymentData)
-        }
-        paymentErrorsStore.set(undefined)
-
-        if (successUrl) {
-          setTimeout(() => location.href = successUrl, REDIRECT_DELAY)
-        }
-
-        return resolve(paymentStatus)
-      } else if (paymentStatus.provider.status === 'REJECTED') {
-        // update payment for BE
-        if (options.updatePayment) {
-          await options.updatePayment(sessionId, paymentStatus.provider.status)
-        }
-
-        handleError();
-
-      } else if (maxAttempts && attempts === maxAttempts) {
-        handleError()
-      } else {
-        // continue polling
-        const isForcedFromOutside = get(forcePollingStop);
-        if (!isForcedFromOutside) {
-          const timeoutId = setTimeout(executePoll, interval, resolve, reject);
-          pollingStore.set(timeoutId)
-        }
-
-      }
+      } else return reject(new Error("There's been a problem retrieving payment data from order id"))
     }
 
     const streamPaymentIntentRequest = async () => {

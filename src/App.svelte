@@ -35,23 +35,22 @@
   let streamModalVisible = false
   let streamPaymentData
 
-  let showPaymentInfos = false
+  let showPaymentInfos = true
 
   onMount(async () => {
     stripe = await loadStripe(PUBLIC_STRIPE_KEY);
 
     const urlParams = new URLSearchParams(location.search);
+    const paymentSessionIdFromUrl = urlParams.get(paymentSessionIdUrlKey);
 
-    if (urlParams.has(paymentSessionIdUrlKey)) {
-      const paymentSessionId = urlParams.get(paymentSessionIdUrlKey)
-
+    if (paymentSessionIdFromUrl) {
       try {
-        paymentDataBySessionId = await options.fetchPaymentDataBySessionId(paymentSessionId)
+        paymentDataBySessionId = await options.fetchPaymentDataBySessionId(paymentSessionIdFromUrl)
 
         // TODO: change this into a "content not allowed" like page
         //  if a user come back to the same page after the payment, it should not see any info of the last payment
         if (!paymentDataBySessionId.paymentSessionId || paymentDataBySessionId.status === "SUCCEEDED" || paymentDataBySessionId.status === "APPROVED") {
-          showPaymentInfos = true;
+          showPaymentInfos = false;
         }
       } catch (e) {
         options.failurePaymentCallback(e)
@@ -187,16 +186,16 @@
     <div class="card">
       <!-- TODO: Show the user merchant name initials as the icon when it will be returned by the API -->
       <div class="icon">--</div>
-      <h1 class="title">{showPaymentInfos ? "---" : formatAmountToDisplay(paymentDataBySessionId?.amount, paymentDataBySessionId?.currency)}</h1>
+      <h1 class="title">{showPaymentInfos ? formatAmountToDisplay(paymentDataBySessionId?.amount, paymentDataBySessionId?.currency) : "---"}</h1>
       <h3 class="subtitle">Total cart</h3>
       <div class="row">
         <p class="label">Reason:</p>
-        <p class="value">{showPaymentInfos ? "---" : paymentDataBySessionId?.reason}</p>
+        <p class="value">{showPaymentInfos ? paymentDataBySessionId?.reason : "---"}</p>
       </div>
       <div class="row">
         <p class="label">Checkout Total:</p>
         <p class="value">
-          {showPaymentInfos ? "---" : formatAmountToDisplay(paymentDataBySessionId?.amount, paymentDataBySessionId?.currency)}
+          {showPaymentInfos ? formatAmountToDisplay(paymentDataBySessionId?.amount, paymentDataBySessionId?.currency) : "---"}
         </p>
       </div>
     </div>
@@ -252,7 +251,7 @@
       <div class="card card-mobile">
         <!-- TODO: Show the user merchant name initials as the icon when it will be returned by the API -->
         <div class="icon">--</div>
-        <h1 class="title">{showPaymentInfos ? "---" : formatAmountToDisplay(paymentDataBySessionId?.amount, paymentDataBySessionId?.currency)}</h1>
+        <h1 class="title">{showPaymentInfos ? formatAmountToDisplay(paymentDataBySessionId?.amount, paymentDataBySessionId?.currency) : "---"}</h1>
         <h3 class="subtitle">Total cart</h3>
         <div class="row">
           <p class="label">Reason:</p>
@@ -270,7 +269,7 @@
         <h2 class="subtitle">Choose your payment method</h2>
 
         {#if options.renderPayWithToonieButton}
-          <button on:click={() => onPaymentButtonClick("pwt")} class:disabled={showPaymentInfos} class="primary-btn">
+          <button on:click={() => onPaymentButtonClick("pwt")} class:disabled={!showPaymentInfos} class="primary-btn">
             <span class="primary-btn__text">Pay with</span>
             <svg
                     width="92"
@@ -320,7 +319,7 @@
         {/if}
 
         {#if options.renderStreamWithToonieButton}
-          <button on:click={() => onPaymentButtonClick("stream")} class:disabled={showPaymentInfos} class="primary-btn">
+          <button on:click={() => onPaymentButtonClick("stream")} class:disabled={!showPaymentInfos} class="primary-btn">
             <span class="primary-btn__text">Stream with</span>
             <svg
                     width="92"
@@ -369,7 +368,7 @@
 
         {#if stripe && options.renderPayWithCardButton}
           <Elements {stripe}>
-            <button on:click={() => onPaymentButtonClick("card")} class:disabled={showPaymentInfos} class="primary-btn primary-btn--card">
+            <button on:click={() => onPaymentButtonClick("card")} class:disabled={!showPaymentInfos} class="primary-btn primary-btn--card">
               <span class="primary-btn__text">Pay with card</span>
             </button>
             {#if cardModalVisible}
