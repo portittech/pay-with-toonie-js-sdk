@@ -41,10 +41,9 @@
     stripe = await loadStripe(PUBLIC_STRIPE_KEY);
 
     const urlParams = new URLSearchParams(location.search);
+    const paymentSessionId = urlParams.get(paymentSessionIdUrlKey)
 
-    if (urlParams.has(paymentSessionIdUrlKey)) {
-      const paymentSessionId = urlParams.get(paymentSessionIdUrlKey)
-
+    if (paymentSessionId) {
       try {
         paymentDataBySessionId = await options.fetchPaymentDataBySessionId(paymentSessionId)
 
