@@ -225,6 +225,17 @@
       font-family: var(--font-family);
       position: relative;
       min-width: 400px;
+
+      @media only screen and (max-width: 780px) {
+        width: 18rem;
+        min-width: auto;
+        min-height: 10rem;
+        padding: 2rem 1rem 1rem;
+      }
+
+      @media only screen and (max-width: 320px) {
+        width: 16rem;
+      }
     }
 
     &__close-icon {
@@ -330,6 +341,6 @@
   }
 
   .row :global(.input) {
-    width: 20%;
+    width: 50%;
   }
 </style>

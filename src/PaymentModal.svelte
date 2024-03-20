@@ -198,6 +198,8 @@
     }
 
     &__content {
+      width: 18rem;
+      min-width: 15rem;
       background-color: var(--main-white-color);
       border-radius: 30px;
       box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
@@ -205,7 +207,14 @@
       padding: 3rem 2rem 1rem;
       font-family: var(--font-family);
       position: relative;
-      min-width: 240px;
+
+      @media only screen and (max-width: 780px) {
+        padding: 2rem 1rem 1rem;
+      }
+
+      @media only screen and (max-width: 320px) {
+        width: 16rem;
+      }
     }
 
     &__close-icon {
