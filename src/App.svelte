@@ -9,6 +9,7 @@
   import { forcePollingStop, optionsStore, paymentErrorsStore } from './store'
   import StreamPaymentModal from "./StreamPaymentModal.svelte";
   import { checkInvalidOptions } from './utils.svelte'
+  import { is_empty } from "svelte/internal";
 
 
   const options = get(optionsStore)
@@ -37,13 +38,19 @@
 
   let showPaymentInfos = true
 
+  let isLoading = true;
+
   onMount(async () => {
     stripe = await loadStripe(PUBLIC_STRIPE_KEY);
 
     const urlParams = new URLSearchParams(location.search);
     const paymentSessionIdFromUrl = urlParams.get(paymentSessionIdUrlKey);
 
-    if (paymentSessionIdFromUrl) {
+    if (!paymentSessionIdFromUrl || is_empty(paymentSessionIdFromUrl ?? "")) {
+      window.location.href = toonieRedirectUrl
+    } else {
+      isLoading = false;
+
       try {
         paymentDataBySessionId = await options.fetchPaymentDataBySessionId(paymentSessionIdFromUrl)
 
@@ -57,7 +64,7 @@
         loadDataError = true
         console.warn('There was an issue with loading data for this payment')
       }
-    } else window.location.href = toonieRedirectUrl
+    }
   })
 
   const getProviderNameFromPaymentType = (paymentType) => {
@@ -174,7 +181,11 @@
     forcePollingStop.set(true)
   }
 </script>
-
+{#if isLoading}
+  <div class="loader-container">
+    <div class="loader"></div>
+  </div>
+{:else}
 <div class="main">
   <div class="left-side">
     <svg class="position-top-left" fill="none" height="439" viewBox="0 0 261 439" width="261"
@@ -431,6 +442,7 @@
     </div>
   </div>
 </div>
+{/if}
 
 
 <style lang="scss">
@@ -446,6 +458,28 @@
     --secondary-white-color: #F5F5F5;
     --error-color: #b22929;
     --font-family: 'Comfortaa', sans-serif;
+  }
+
+  .loader-container {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .loader {
+    width: 50px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background:
+            radial-gradient(farthest-side,var(--toonie-secondary-color) 94%,#0000) top/8px 8px no-repeat,
+            conic-gradient(#0000 30%,var(--toonie-secondary-color));
+    -webkit-mask: radial-gradient(farthest-side, #0000 calc(100% - 8px), #000 0);
+    animation: l13 1s infinite linear;
+  }
+  @keyframes l13{
+    100%{transform: rotate(1turn)}
   }
 
   .disabled {
