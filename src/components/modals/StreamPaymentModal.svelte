@@ -1,6 +1,6 @@
 <script>
-  import QRCode from './QRJS.svelte'
-  import { pollForNewPayment } from './Polling.svelte'
+  import QRCode from '../QRJS.svelte'
+  import { pollForNewPayment } from '../../shared/utils/Polling.svelte'
 
   export let streamModalVisible
   export let loadDataError
@@ -13,8 +13,8 @@
 
 <div>
   <div class="pwt-modal {streamModalVisible ? 'pwt-modal--visible' : ''}">
-    <div class="pwt-modal__content">
-      <div on:click={onCloseModal} class="pwt-modal__close-icon">X</div>
+    <div class="stream-modal-content">
+      <button on:click={onCloseModal} class="pwt-modal__close-icon">X</button>
       {#if streamModalVisible}
         {#if loadDataError}
           <div class="pwt-modal__body">
@@ -162,112 +162,5 @@
 </div>
 
 <style lang="scss">
-  .pwt-modal {
-    position: fixed;
-    inset: 0;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s ease;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: grid;
-    place-items: center;
-
-    @keyframes fade-up {
-      from {
-        opacity: 0;
-        transform: translateY(30%);
-      }
-    }
-
-    &--visible {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    &__centered {
-      text-align: center;
-    }
-
-    &__content {
-      background-color: var(--main-white-color);
-      border-radius: 30px;
-      box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
-      background-clip: padding-box;
-      padding: 3rem 2rem 1rem;
-      font-family: var(--font-family);
-      position: relative;
-      min-width: 200px;
-    }
-
-    &__close-icon {
-      position: absolute;
-      right: 1.5rem;
-      top: 1.5rem;
-      color: var(--toonie-secondary-color);
-      cursor: pointer;
-    }
-
-    &__body {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      animation: fade-up 0.5s forwards;
-    }
-
-    &__title {
-      color: var(--toonie-primary-color);
-
-      &--error {
-        color: var(--error-color);
-      }
-
-      font-size: 1.2rem;
-      margin-bottom: 1.5rem;
-    }
-
-    &__icon svg {
-      width: 70px;
-      height: 70px;
-    }
-
-    &__message {
-      text-align: center;
-      margin-top: 1rem;
-      font-size: 0.8rem;
-      line-height: 1.5rem;
-      max-width: 200px;
-      color: var(--toonie-secondary-color);
-    }
-
-    &__footer {
-      margin-top: 2rem;
-      color: #91a1ad;
-      font-size: 0.8rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    &__footer svg {
-      height: 15px;
-      width: 70px;
-    }
-
-    &__footer span {
-      padding-top: 3px;
-    }
-
-    &__btn {
-      background: var(--toonie-secondary-color);
-      box-shadow: 0 4px 15px rgba(244, 201, 19, 0.3);
-      border-radius: 30px;
-      outline: 0;
-      border: 0;
-      margin-top: 1rem;
-      padding: 0.5rem 2rem;
-      cursor: pointer;
-      color: var(--main-white-color);
-    }
-  }
+  @import "../../styles/modal.styles.scss";
 </style>

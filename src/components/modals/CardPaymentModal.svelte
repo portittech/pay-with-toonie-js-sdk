@@ -1,7 +1,7 @@
 <script>
   import { CardCvc, CardExpiry, CardNumber, Elements } from "svelte-stripe";
   import { get } from "svelte/store";
-  import { optionsStore } from "./store.js";
+  import { optionsStore } from "../../store.js";
 
   export let cardModalVisible
   export let loadDataError
@@ -69,7 +69,7 @@
 <div>
     <div class="card-modal {cardModalVisible ? 'card-modal--visible' : ''}">
         <div class="card-modal__content">
-            <div on:click={onCloseModal} class="card-modal__close-icon">X</div>
+            <button on:click={onCloseModal} class="card-modal__close-icon">X</button>
             {#if cardModalVisible}
                 {#if loadDataError}
                     <div class="card-modal__body">
@@ -194,153 +194,5 @@
 </div>
 
 <style lang="scss">
-  .card-modal {
-    position: fixed;
-    inset: 0;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s ease;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: grid;
-    place-items: center;
-
-    @keyframes fade-up {
-      from {
-        opacity: 0;
-        transform: translateY(30%);
-      }
-    }
-
-    &--visible {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    &__content {
-      background-color: var(--main-white-color);
-      border-radius: 30px;
-      box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
-      background-clip: padding-box;
-      padding: 3rem 2rem 1rem;
-      font-family: var(--font-family);
-      position: relative;
-      min-width: 400px;
-
-      @media only screen and (max-width: 780px) {
-        width: 18rem;
-        min-width: auto;
-        min-height: 10rem;
-        padding: 2rem 1rem 1rem;
-      }
-
-      @media only screen and (max-width: 320px) {
-        width: 16rem;
-      }
-    }
-
-    &__close-icon {
-      position: absolute;
-      right: 1.5rem;
-      top: 1.5rem;
-      color: var(--toonie-secondary-color);
-      cursor: pointer;
-    }
-
-    &__body {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      animation: fade-up 0.5s forwards;
-    }
-
-    &__title {
-      color: var(--toonie-primary-color);
-
-      &--error {
-        color: var(--error-color);
-      }
-
-      font-size: 1.2rem;
-      margin-bottom: 1.5rem;
-    }
-
-    &__icon svg {
-      width: 70px;
-      height: 70px;
-    }
-
-    &__message {
-      text-align: center;
-      margin-top: 1rem;
-      font-size: 0.8rem;
-      line-height: 1.5rem;
-      max-width: 200px;
-      color: var(--toonie-secondary-color);
-
-      &--error {
-        color: var(--error-color);
-        width: 100%;
-        text-align: start;
-        max-width: 100%;
-      }
-    }
-
-    &__footer {
-      margin-top: 2rem;
-      color: #91a1ad;
-      font-size: 0.8rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    &__footer svg {
-      height: 15px;
-      width: 70px;
-    }
-
-    &__footer span {
-      padding-top: 3px;
-    }
-
-    &__btn {
-      background: var(--toonie-secondary-color);
-      box-shadow: 0 4px 15px rgba(244, 201, 19, 0.3);
-      border-radius: 30px;
-      outline: 0;
-      border: 0;
-      margin-top: 1rem;
-      padding: 0.5rem 2rem;
-      cursor: pointer;
-      color: var(--main-white-color);
-    }
-  }
-
-  form {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 0.5rem;
-    margin-bottom: 2rem;
-  }
-
-  .row {
-    display: flex;
-    flex-direction: row;
-    gap: 5px;
-  }
-
-  input,
-  :global(.input) {
-    box-shadow: 0 4px 14px 0 rgba(0, 0, 0, 0.1);
-    border: none;
-    padding: 1rem;
-    border-radius: 5px;
-    background: white;
-  }
-
-  .row :global(.input) {
-    width: 50%;
-  }
+  @import "../../styles/modal.styles.scss";
 </style>
