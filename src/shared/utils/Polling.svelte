@@ -1,6 +1,6 @@
 <script context="module">
   import { get } from 'svelte/store'
-  import { forcePollingStop, optionsStore, paymentErrorsStore, pollingStore } from './store'
+  import { forcePollingStop, optionsStore, paymentErrorsStore, pollingStore } from '../../store.js'
 
   const POLL_INTERVAL = 5000
   const MAX_ATTEMPTS = 10

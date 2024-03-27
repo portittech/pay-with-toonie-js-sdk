@@ -1,13 +1,13 @@
 import svelte from "rollup-plugin-svelte";
 import commonjs from "@rollup/plugin-commonjs";
-import resolve from "@rollup/plugin-node-resolve";
+import { nodeResolve } from "@rollup/plugin-node-resolve";
 import livereload from "rollup-plugin-livereload";
-import { terser } from "rollup-plugin-terser";
 import sveltePreprocess from "svelte-preprocess";
-import css from "rollup-plugin-css-only";
 import json from "@rollup/plugin-json";
 import { config } from "dotenv";
 import replace from "@rollup/plugin-replace";
+import terser from "@rollup/plugin-terser";
+import scss from "rollup-plugin-scss";
 
 // Load environment variables from .env file
 config();
@@ -30,7 +30,7 @@ function serve() {
         {
           stdio: ["ignore", "inherit", "inherit"],
           shell: true,
-        }
+        },
       );
 
       process.on("SIGTERM", toExit);
@@ -59,7 +59,7 @@ export default {
     replace({
       // Replace .env variables with the actual value
       "process.env.PUBLIC_STRIPE_KEY": JSON.stringify(
-        process.env.PUBLIC_STRIPE_KEY
+        process.env.PUBLIC_STRIPE_KEY,
       ),
       "process.env.ENVIRONMENT": JSON.stringify(process.env.ENVIRONMENT),
       preventAssignment: true,
@@ -67,18 +67,19 @@ export default {
 
     // we'll extract any component CSS out into
     // a separate file - better for performance
-    css({ output: "pay-with-toonie.dist.css" }),
+    scss({ fileName: "pay-with-toonie.dist.css" }),
 
     // If you have external dependencies installed from
     // npm, you'll most likely need these plugins. In
     // some cases you'll need additional configuration -
     // consult the documentation for details:
-    // https://github.com/rollup/plugins/tree/master/packages/commonjs
-    resolve({
+    // https://github.com/rollup/plugins/tree/master/packages/node-resolve
+    nodeResolve({
       browser: true,
       dedupe: ["svelte"],
     }),
 
+    // https://github.com/rollup/plugins/tree/master/packages/commonjs
     commonjs(),
 
     json(),
