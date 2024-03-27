@@ -10,12 +10,13 @@
   import StreamPaymentModal from "./components/modals/StreamPaymentModal.svelte";
   import { checkInvalidOptions } from './shared/utils/utils.svelte'
   import { is_empty } from "svelte/internal";
+  import { navigate, Route, Router } from "svelte-routing";
+  import { routes } from "./shared/routes.js";
 
 
   const options = get(optionsStore)
   const paymentSessionIdUrlKey = "orderId"
   const toonieRedirectUrl = "https://www.toonieglobal.com/"
-
   const PUBLIC_STRIPE_KEY = process.env.PUBLIC_STRIPE_KEY
 
   const version = readable(packageJson.version);
@@ -58,6 +59,7 @@
         //  if a user come back to the same page after the payment, it should not see any info of the last payment
         if (!paymentDataBySessionId.paymentSessionId || paymentDataBySessionId.status === "SUCCEEDED" || paymentDataBySessionId.status === "APPROVED") {
           showPaymentInfos = false;
+          navigate("/payment-already-completed")
         }
       } catch (e) {
         options.failurePaymentCallback(e)
@@ -181,6 +183,14 @@
     forcePollingStop.set(true)
   }
 </script>
+
+<!-- Routes -->
+<Router>
+  {#each routes as route}
+    <Route {...route} />
+  {/each}
+</Router>
+
 {#if isLoading}
   <div class="loader-container">
     <div class="loader"></div>
